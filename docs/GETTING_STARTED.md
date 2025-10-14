@@ -249,7 +249,7 @@ SET r.order_id = row.order_id,
 
 ---
 
-## 🚀 Step 6: Execute Against Neo4j
+## 🚀 Step 6: Create the Schema in Neo4j
 
 **Prerequisites:**
 
@@ -257,12 +257,16 @@ SET r.order_id = row.order_id,
 - You have connection credentials
 
 ```bash
-# Build and execute in one command
+# Create schema (constraints and indexes only)
 grai run \
   --uri bolt://localhost:7687 \
   --user neo4j \
   --password graipassword
 ```
+
+**What this does:**
+
+By default, `grai run` creates only the **schema** (constraints and indexes) without attempting to load data. This is perfect for getting started, as it doesn't require CSV files or data sources.
 
 **Expected output:**
 
@@ -274,14 +278,33 @@ grai run \
 🔌 Connecting to Neo4j at bolt://localhost:7687...
 ✅ Connected successfully
 ⚡ Executing Cypher statements...
-✅ Executed 3 statements successfully
+✅ Executed 10 statements successfully
 📊 Records affected: 0
-⏱️  Execution time: 0.52s
+⏱️  Execution time: 0.13s
+```
+
+The generated Cypher looks like this:
+
+```cypher
+// Create constraints for unique keys
+CREATE CONSTRAINT constraint_customer_customer_id IF NOT EXISTS 
+FOR (n:customer) REQUIRE n.customer_id IS UNIQUE;
+
+CREATE CONSTRAINT constraint_product_product_id IF NOT EXISTS 
+FOR (n:product) REQUIRE n.product_id IS UNIQUE;
+
+// Create indexes for faster lookups
+CREATE INDEX index_customer_name IF NOT EXISTS 
+FOR (n:customer) ON (n.name);
+
+CREATE INDEX index_customer_email IF NOT EXISTS 
+FOR (n:customer) ON (n.email);
+// ... and so on
 ```
 
 ---
 
-## 🌐 Step 7: Verify in Neo4j Browser
+## 🌐 Step 7: Verify Schema in Neo4j Browser
 
 Open Neo4j Browser: http://localhost:7474
 
@@ -290,28 +313,47 @@ Login with:
 - Username: `neo4j`
 - Password: `graipassword`
 
-Run this query:
+Check the constraints:
 
 ```cypher
-// Check what was created
-MATCH (n)
-RETURN labels(n) AS type, count(n) AS count
+SHOW CONSTRAINTS
 ```
 
-You should see:
+Check the indexes:
 
-```
-type         | count
--------------|------
-["customer"] | 0
-["product"]  | 0
+```cypher
+SHOW INDEXES
 ```
 
-The schema exists, but no data yet (MERGE creates nodes only when data is provided).
+You should see all the constraints and indexes defined in your project. The schema is ready, but no data has been loaded yet.
 
 ---
 
-## 📊 Step 8: Load Sample Data
+## � Understanding Data Loading
+
+The `grai run` command has two modes:
+
+### Mode 1: Schema Only (Default)
+
+```bash
+grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
+```
+
+Creates only constraints and indexes. This is the **recommended starting point** as it doesn't require any data files.
+
+### Mode 2: With Data (Requires CSV Files)
+
+```bash
+grai run --with-data --uri bolt://localhost:7687 --user neo4j --password graipassword
+```
+
+Generates MERGE statements with `row.property` placeholders, which are designed to be used with `LOAD CSV` statements. This mode will fail unless you've prepared CSV files and modified the Cypher to include LOAD CSV context.
+
+**For now, stick with the default schema-only mode.** To load actual data, use Python scripts (see next section).
+
+---
+
+## �📊 Step 8: Load Sample Data
 
 Create a script to load test data:
 

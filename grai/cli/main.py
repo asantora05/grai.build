@@ -617,6 +617,11 @@ def run(
         "-f",
         help="Cypher file to execute (default: target/neo4j/compiled.cypher).",
     ),
+    schema_only: bool = typer.Option(
+        True,
+        "--schema-only/--with-data",
+        help="Create only schema (constraints/indexes) without data loading statements.",
+    ),
     dry_run: bool = typer.Option(
         False,
         "--dry-run",
@@ -637,6 +642,9 @@ def run(
     """
     Execute compiled Cypher against Neo4j database.
     
+    By default, only creates the schema (constraints and indexes).
+    Use --with-data to also execute data loading statements (requires LOAD CSV context).
+    
     Builds the project (unless --skip-build) and executes the
     generated Cypher statements against a Neo4j database.
     """
@@ -654,7 +662,7 @@ def run(
                 project_dir=project_dir,
                 output_dir=None,
                 filename="compiled.cypher",
-                schema_only=False,
+                schema_only=schema_only,
                 skip_validation=False,
                 verbose=False,
             )

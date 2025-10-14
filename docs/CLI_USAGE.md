@@ -176,6 +176,8 @@ Creates `target/neo4j/compiled.cypher` containing:
 
 Build and execute Cypher against a Neo4j database.
 
+**By default**, only creates the schema (constraints and indexes). Use `--with-data` to include data loading statements (requires CSV files).
+
 ```bash
 cd my-graph-project
 grai run --password mypassword
@@ -188,6 +190,8 @@ grai run --password mypassword
 - `--password, -p` - Password (prompts if not provided)
 - `--database, -d` - Database name (default: `neo4j`)
 - `--file, -f` - Cypher file to execute (default: `target/neo4j/compiled.cypher`)
+- `--schema-only` - Create only schema (default: `True`)
+- `--with-data` - Include data loading statements (requires LOAD CSV context)
 - `--dry-run` - Show what would be executed without running
 - `--skip-build` - Skip building before execution
 - `--verbose, -v` - Show detailed execution output
@@ -196,8 +200,14 @@ grai run --password mypassword
 **Examples:**
 
 ```bash
-# Run against local Neo4j (prompts for password)
+# Create schema only (default, recommended for getting started)
 grai run
+
+# Create schema with explicit flag
+grai run --schema-only
+
+# Include data loading statements (requires CSV files)
+grai run --with-data
 
 # Specify connection details
 grai run --uri bolt://localhost:7687 --user neo4j --password secret
