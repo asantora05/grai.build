@@ -554,9 +554,9 @@ def build(
         help="Output filename.",
     ),
     schema_only: bool = typer.Option(
-        False,
-        "--schema-only",
-        help="Generate only schema (constraints and indexes).",
+        True,
+        "--schema-only/--with-data",
+        help="Generate only schema (constraints and indexes) without data loading statements.",
     ),
     skip_validation: bool = typer.Option(
         False,
@@ -582,6 +582,9 @@ def build(
 ):
     """
     Build the project by compiling to Cypher.
+    
+    By default, only generates schema (constraints and indexes).
+    Use --with-data to include data loading statements (requires LOAD CSV context).
     
     Validates the project (unless --skip-validation) and generates
     Neo4j Cypher statements in the target directory.

@@ -133,8 +133,12 @@ class TestBuildCommand:
         assert output_file.exists()
         
         content = output_file.read_text()
-        assert "MERGE" in content
+        # Default is schema-only, so should have constraints and indexes
+        assert "CONSTRAINT" in content
+        assert "INDEX" in content
         assert "customer" in content
+        # Should NOT have MERGE statements in schema-only mode
+        assert "MERGE" not in content
 
     def test_build_custom_output_dir(self, tmp_path):
         """Test build with custom output directory."""

@@ -40,12 +40,6 @@ class KeyMappingError(ValidationError):
     pass
 
 
-class CircularDependencyError(ValidationError):
-    """Exception raised when circular dependencies are detected."""
-
-    pass
-
-
 class ValidationResult:
     """
     Result of a validation operation.
@@ -256,68 +250,6 @@ def validate_property_definitions(
     return result
 
 
-def check_circular_dependencies(
-    relations: List[Relation],
-    result: Optional[ValidationResult] = None,
-) -> ValidationResult:
-    """
-    Check for circular dependencies in entity relations.
-
-    Args:
-        relations: List of relations to check.
-        result: Optional existing ValidationResult to add to.
-
-    Returns:
-        ValidationResult with any circular dependencies found.
-    """
-    if result is None:
-        result = ValidationResult()
-
-    # Build adjacency list
-    graph: Dict[str, Set[str]] = {}
-    for relation in relations:
-        if relation.from_entity not in graph:
-            graph[relation.from_entity] = set()
-        graph[relation.from_entity].add(relation.to_entity)
-
-    # Detect cycles using DFS
-    visited: Set[str] = set()
-    rec_stack: Set[str] = set()
-    path: List[str] = []
-
-    def has_cycle(node: str) -> bool:
-        """DFS helper to detect cycles."""
-        visited.add(node)
-        rec_stack.add(node)
-        path.append(node)
-
-        if node in graph:
-            for neighbor in graph[node]:
-                if neighbor not in visited:
-                    if has_cycle(neighbor):
-                        return True
-                elif neighbor in rec_stack:
-                    # Found a cycle
-                    cycle_start = path.index(neighbor)
-                    cycle = path[cycle_start:] + [neighbor]
-                    result.add_warning(
-                        f"Circular dependency detected: {' -> '.join(cycle)}",
-                        context="Graph structure",
-                    )
-                    return True
-
-        path.pop()
-        rec_stack.remove(node)
-        return False
-
-    # Check all nodes
-    for node in graph:
-        if node not in visited:
-            has_cycle(node)
-
-    return result
-
-
 def validate_unique_names(
     entities: List[Entity],
     relations: List[Relation],
@@ -393,7 +325,6 @@ def validate_sources(
 def validate_project(
     project: Project,
     strict: bool = True,
-    check_cycles: bool = True,
 ) -> ValidationResult:
     """
     Validate an entire project for consistency and correctness.
@@ -401,7 +332,6 @@ def validate_project(
     Args:
         project: The project to validate.
         strict: If True, warnings will be treated as errors.
-        check_cycles: If True, check for circular dependencies.
 
     Returns:
         ValidationResult with all errors and warnings.
@@ -421,8 +351,9 @@ def validate_project(
     validate_key_mappings(project.relations, entity_index, result)
     validate_property_definitions(project.entities, project.relations, result)
 
-    if check_cycles:
-        check_circular_dependencies(project.relations, result)
+    # Note: We don't check for circular dependencies because they are
+    # normal and expected in graph structures (e.g., bidirectional relationships,
+    # social networks, organizational hierarchies, etc.)
 
     # In strict mode, treat warnings as errors
     if strict and result.warnings:

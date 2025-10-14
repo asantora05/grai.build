@@ -1,7 +1,6 @@
 """Validator module for checking project consistency and correctness."""
 
 from grai.core.validator.validator import (
-    CircularDependencyError,
     EntityReferenceError,
     KeyMappingError,
     ValidationError,
@@ -17,7 +16,6 @@ __all__ = [
     "ValidationError",
     "EntityReferenceError",
     "KeyMappingError",
-    "CircularDependencyError",
     "ValidationResult",
     "validate_project",
     "validate_entity",

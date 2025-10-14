@@ -518,45 +518,6 @@ class TestValidateProject:
         assert result.valid is False
         assert len(result.errors) > 0
 
-    def test_validate_project_circular_dependency(self):
-        """Test detection of circular dependencies."""
-        entity_a = Entity(
-            entity="a",
-            source="source.a",
-            keys=["id"],
-        )
-        entity_b = Entity(
-            entity="b",
-            source="source.b",
-            keys=["id"],
-        )
-
-        rel_a_to_b = Relation(
-            relation="A_TO_B",
-            from_entity="a",
-            to_entity="b",
-            source="source.ab",
-            mappings=RelationMapping(from_key="id", to_key="id"),
-        )
-        rel_b_to_a = Relation(
-            relation="B_TO_A",
-            from_entity="b",
-            to_entity="a",
-            source="source.ba",
-            mappings=RelationMapping(from_key="id", to_key="id"),
-        )
-
-        project = Project(
-            name="test-project",
-            version="1.0.0",
-            entities=[entity_a, entity_b],
-            relations=[rel_a_to_b, rel_b_to_a],
-        )
-
-        result = validate_project(project, strict=False, check_cycles=True)
-        assert len(result.warnings) > 0
-        assert any("Circular dependency" in warning for warning in result.warnings)
-
     def test_validate_empty_project(self):
         """Test validation of empty project."""
         project = Project(
