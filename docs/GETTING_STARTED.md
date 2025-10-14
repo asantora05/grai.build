@@ -16,7 +16,7 @@ Complete guide for using grai.build from any directory as a real user.
 
 First, make sure grai is installed and working:
 
-```bash
+````bash
 # Check if ## 📊 Step 8: Load Sample Data
 
 Go**For now, stick with the default schema-only mode.** To load actual data, use the provided CSV files and loading script (see next section).
@@ -39,20 +39,22 @@ The easiest way to load data is using the provided Cypher script:
 
 # Option 2: cypher-shell (from terminal)
 cat load_data.cypher | cypher-shell -u neo4j -p graipassword
-```
+````
 
 **Expected output (from Neo4j Browser):**
 
 The script will:
+
 - Load 5 customers
 - Load 6 products
 - Create 10 purchase relationships
 - Show verification queries with counts and sample data
 
 You should see output like:
+
 ```
 Added 5 nodes
-Added 6 nodes  
+Added 6 nodes
 Created 10 relationships
 ```
 
@@ -131,6 +133,7 @@ This creates files in the current directory:
 ```
 
 **What's included:**
+
 - ✅ Entity and relation YAML definitions
 - ✅ Sample CSV files with realistic data
 - ✅ Ready-to-use Cypher script for loading data (just copy/paste into Neo4j Browser)
@@ -343,17 +346,17 @@ The generated Cypher looks like this:
 
 ```cypher
 // Create constraints for unique keys
-CREATE CONSTRAINT constraint_customer_customer_id IF NOT EXISTS 
+CREATE CONSTRAINT constraint_customer_customer_id IF NOT EXISTS
 FOR (n:customer) REQUIRE n.customer_id IS UNIQUE;
 
-CREATE CONSTRAINT constraint_product_product_id IF NOT EXISTS 
+CREATE CONSTRAINT constraint_product_product_id IF NOT EXISTS
 FOR (n:product) REQUIRE n.product_id IS UNIQUE;
 
 // Create indexes for faster lookups
-CREATE INDEX index_customer_name IF NOT EXISTS 
+CREATE INDEX index_customer_name IF NOT EXISTS
 FOR (n:customer) ON (n.name);
 
-CREATE INDEX index_customer_email IF NOT EXISTS 
+CREATE INDEX index_customer_email IF NOT EXISTS
 FOR (n:customer) ON (n.email);
 // ... and so on
 ```

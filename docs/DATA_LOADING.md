@@ -46,14 +46,14 @@ grai run --schema-only --uri bolt://localhost:7687 --user neo4j --password secre
 
 ```cypher
 // Constraints for unique keys
-CREATE CONSTRAINT constraint_customer_customer_id IF NOT EXISTS 
+CREATE CONSTRAINT constraint_customer_customer_id IF NOT EXISTS
 FOR (n:customer) REQUIRE n.customer_id IS UNIQUE;
 
 // Indexes for properties
-CREATE INDEX index_customer_name IF NOT EXISTS 
+CREATE INDEX index_customer_name IF NOT EXISTS
 FOR (n:customer) ON (n.name);
 
-CREATE INDEX index_customer_email IF NOT EXISTS 
+CREATE INDEX index_customer_email IF NOT EXISTS
 FOR (n:customer) ON (n.email);
 ```
 
@@ -119,6 +119,7 @@ grai run --load-csv --password yourpassword
 ```
 
 This will:
+
 1. Build and validate your project
 2. Create the schema (constraints & indexes)
 3. Automatically load CSV data from `load_data.cypher`
@@ -126,6 +127,7 @@ This will:
 ### Option 2: Manual (Neo4j Browser)
 
 1. Create the schema:
+
    ```bash
    grai run --password yourpassword
    ```
@@ -192,6 +194,7 @@ close_connection(driver)
 Prepare CSV files and use Neo4j's LOAD CSV:
 
 **customers.csv:**
+
 ```csv
 customer_id,name,email,created_at
 C001,Alice Johnson,alice@example.com,2024-01-15T00:00:00Z
@@ -199,6 +202,7 @@ C002,Bob Smith,bob@example.com,2024-02-01T00:00:00Z
 ```
 
 **Load script:**
+
 ```cypher
 LOAD CSV WITH HEADERS FROM 'file:///data/customers.csv' AS row
 MERGE (n:customer {customer_id: row.customer_id})
