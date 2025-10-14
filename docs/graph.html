@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>example-project - Graph Visualization - Knowledge Graph Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #graph {
+            background: white;
+        }
+        .legend {
+            padding: 20px;
+            background: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+        }
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .legend-items {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .node {
+            cursor: pointer;
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+        .node.entity {
+            fill: #4fc3f7;
+        }
+        .node.relation {
+            fill: #ffd54f;
+        }
+        .node.source {
+            fill: #ba68c8;
+        }
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+        }
+        .node-label {
+            font-size: 12px;
+            pointer-events: none;
+            text-anchor: middle;
+            fill: #333;
+        }
+        .tooltip {
+            position: absolute;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 example-project - Graph Visualization</h1>
+            <div class="stats">
+                <div class="stat">
+                    <span>📊</span>
+                    <span>6 nodes</span>
+                </div>
+                <div class="stat">
+                    <span>🔗</span>
+                    <span>5 edges</span>
+                </div>
+                <div class="stat">
+                    <span>🏢</span>
+                    <span>2 entities</span>
+                </div>
+                <div class="stat">
+                    <span>↔️</span>
+                    <span>1 relations</span>
+                </div>
+                <div class="stat">
+                    <span>📁</span>
+                    <span>3 sources</span>
+                </div>
+            </div>
+        </div>
+        
+        <svg id="graph" width="1400" height="900"></svg>
+        
+        <div class="legend">
+            <div class="legend-title">Legend</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4fc3f7;"></div>
+                    <span>Entity</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffd54f;"></div>
+                    <span>Relation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ba68c8;"></div>
+                    <span>Source</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+    
+    <script>
+        const nodes = [{"id": "entity:customer", "name": "customer", "type": "entity"}, {"id": "source:analytics.customers", "name": "analytics.customers", "type": "source"}, {"id": "entity:product", "name": "product", "type": "entity"}, {"id": "source:analytics.products", "name": "analytics.products", "type": "source"}, {"id": "relation:PURCHASED", "name": "PURCHASED", "type": "relation"}, {"id": "source:analytics.orders", "name": "analytics.orders", "type": "source"}];
+        const links = [{"source": "source:analytics.customers", "target": "entity:customer", "type": "produces"}, {"source": "source:analytics.products", "target": "entity:product", "type": "produces"}, {"source": "source:analytics.orders", "target": "relation:PURCHASED", "type": "produces"}, {"source": "entity:customer", "target": "relation:PURCHASED", "type": "participates_in"}, {"source": "relation:PURCHASED", "target": "entity:product", "type": "connects_to"}];
+        
+        const svg = d3.select("#graph");
+        const width = 1400;
+        const height = 900;
+        
+        // Create force simulation
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(40));
+        
+        // Create links
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(links)
+            .join("line")
+            .attr("class", "link");
+        
+        // Create nodes
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(nodes)
+            .join("circle")
+            .attr("class", d => `node ${d.type}`)
+            .attr("r", 15)
+            .call(drag(simulation))
+            .on("mouseover", showTooltip)
+            .on("mouseout", hideTooltip);
+        
+        // Create labels
+        const label = svg.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .join("text")
+            .attr("class", "node-label")
+            .attr("dy", 30)
+            .text(d => d.name);
+        
+        // Update positions on tick
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+            
+            label
+                .attr("x", d => d.x)
+                .attr("y", d => d.y);
+        });
+        
+        // Drag functionality
+        function drag(simulation) {
+            function dragstarted(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+            
+            function dragged(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+            
+            function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+            
+            return d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
+        }
+        
+        // Tooltip functions
+        function showTooltip(event, d) {
+            const tooltip = d3.select("#tooltip");
+            tooltip
+                .style("opacity", 1)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px")
+                .html(`<strong>${d.name}</strong><br>Type: ${d.type}`);
+        }
+        
+        function hideTooltip() {
+            d3.select("#tooltip").style("opacity", 0);
+        }
+    </script>
+</body>
+</html>

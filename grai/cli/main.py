@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from grai.core.models import Project
 from grai.core.parser import load_project
 from grai.core.validator import validate_project
 from grai.core.compiler import compile_and_write, compile_schema_only
@@ -1591,6 +1592,787 @@ def visualize(
     except Exception as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         raise typer.Exit(code=1)
+
+
+@app.command()
+def docs(
+    project_dir: Path = typer.Argument(
+        Path("."),
+        help="Path to grai.build project directory.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("docs"),
+        "--output",
+        "-o",
+        help="Output directory for documentation.",
+    ),
+    serve: bool = typer.Option(
+        False,
+        "--serve",
+        "-s",
+        help="Start local server to view documentation.",
+    ),
+    port: int = typer.Option(
+        8080,
+        "--port",
+        "-p",
+        help="Port for documentation server.",
+    ),
+    open_browser: bool = typer.Option(
+        True,
+        "--open/--no-open",
+        help="Open documentation in browser when serving.",
+    ),
+):
+    """
+    Generate and serve interactive documentation for your knowledge graph.
+    
+    Similar to 'dbt docs generate/serve', this command creates comprehensive
+    HTML documentation including:
+    - Entity and relation catalogs
+    - Interactive graph visualization
+    - Lineage diagrams
+    - Searchable property reference
+    
+    Examples:
+        grai docs                    # Generate docs in ./docs
+        grai docs --serve            # Generate and serve on http://localhost:8080
+        grai docs --serve --port 3000  # Serve on custom port
+    """
+    from grai.core.exporter import export_to_json
+    import json
+    import webbrowser
+    import http.server
+    import socketserver
+    import threading
+    
+    console.print(f"\n[bold cyan]📚 Generating Knowledge Graph Documentation[/bold cyan]\n")
+    
+    try:
+        # Load project
+        project = load_project(project_dir)
+        console.print(f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan]")
+        console.print(f"  - {len(project.entities)} entities")
+        console.print(f"  - {len(project.relations)} relations")
+        
+        # Create output directory
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Export project data as JSON
+        console.print(f"\n[cyan]→[/cyan] Exporting project data...")
+        ir_data = export_to_json(project, pretty=False)
+        
+        # Generate main documentation HTML
+        console.print(f"[cyan]→[/cyan] Generating documentation pages...")
+        
+        # Create index.html
+        index_html = _generate_docs_index_html(project, ir_data)
+        index_path = output_dir / "index.html"
+        index_path.write_text(index_html)
+        console.print(f"[green]✓[/green] Created index.html")
+        
+        # Create entity catalog page
+        entities_html = _generate_entity_catalog_html(project)
+        entities_path = output_dir / "entities.html"
+        entities_path.write_text(entities_html)
+        console.print(f"[green]✓[/green] Created entities.html")
+        
+        # Create relation catalog page
+        relations_html = _generate_relation_catalog_html(project)
+        relations_path = output_dir / "relations.html"
+        relations_path.write_text(relations_html)
+        console.print(f"[green]✓[/green] Created relations.html")
+        
+        # Create graph visualization page
+        from grai.core.visualizer import generate_d3_visualization
+        viz_path = output_dir / "graph.html"
+        generate_d3_visualization(
+            project=project,
+            output_path=viz_path,
+            title=f"{project.name} - Graph Visualization",
+            width=1400,
+            height=900,
+        )
+        console.print(f"[green]✓[/green] Created graph.html")
+        
+        # Create lineage page
+        from grai.core.lineage import build_lineage_graph, visualize_lineage_mermaid
+        lineage_graph = build_lineage_graph(project)
+        mermaid_diagram = visualize_lineage_mermaid(lineage_graph)
+        lineage_html = _generate_lineage_html(project, mermaid_diagram)
+        lineage_path = output_dir / "lineage.html"
+        lineage_path.write_text(lineage_html)
+        console.print(f"[green]✓[/green] Created lineage.html")
+        
+        console.print(f"\n[green]✓[/green] Documentation generated in: [cyan]{output_dir.absolute()}[/cyan]")
+        
+        # Serve documentation if requested
+        if serve:
+            console.print(f"\n[bold cyan]🌐 Starting documentation server...[/bold cyan]\n")
+            
+            # Change to docs directory
+            import os
+            os.chdir(output_dir.absolute())
+            
+            # Create server
+            Handler = http.server.SimpleHTTPRequestHandler
+            
+            try:
+                with socketserver.TCPServer(("", port), Handler) as httpd:
+                    console.print(f"[green]✓[/green] Server running at: [cyan]http://localhost:{port}[/cyan]")
+                    console.print(f"[dim]Press Ctrl+C to stop[/dim]\n")
+                    
+                    # Open browser
+                    if open_browser:
+                        console.print(f"[cyan]→[/cyan] Opening in browser...")
+                        webbrowser.open(f"http://localhost:{port}")
+                    
+                    # Serve forever
+                    httpd.serve_forever()
+                    
+            except KeyboardInterrupt:
+                console.print(f"\n\n[yellow]Stopping server...[/yellow]")
+            except OSError as e:
+                if "Address already in use" in str(e):
+                    console.print(f"[red]✗ Port {port} is already in use[/red]")
+                    console.print(f"[yellow]Try a different port: grai docs --serve --port {port + 1}[/yellow]")
+                else:
+                    raise
+        else:
+            console.print(f"\n[bold]💡 To view documentation:[/bold]")
+            console.print(f"   Open: [cyan]file://{index_path.absolute()}[/cyan]")
+            console.print(f"   Or run: [cyan]grai docs --serve[/cyan]")
+    
+    except FileNotFoundError as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+        console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+        import traceback
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+def _generate_docs_index_html(project: Project, ir_data: str) -> str:
+    """Generate the main documentation index page."""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{project.name} - Knowledge Graph Documentation</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }}
+        
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        
+        .header h1 {{
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }}
+        
+        .header p {{
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }}
+        
+        nav {{
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }}
+        
+        nav a {{
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }}
+        
+        nav a:hover {{
+            color: #764ba2;
+        }}
+        
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }}
+        
+        .card-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }}
+        
+        .card {{
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }}
+        
+        .card:hover {{
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }}
+        
+        .card h3 {{
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }}
+        
+        .card p {{
+            color: #666;
+            margin-bottom: 1rem;
+        }}
+        
+        .card a {{
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }}
+        
+        .stats {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }}
+        
+        .stat {{
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }}
+        
+        .stat-value {{
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }}
+        
+        .stat-label {{
+            color: #666;
+            margin-top: 0.5rem;
+        }}
+        
+        footer {{
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+            margin-top: 4rem;
+        }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 {project.name}</h1>
+        <p>{project.description if hasattr(project, 'description') and project.description else 'Knowledge Graph Documentation'}</p>
+        <p style="opacity: 0.7; font-size: 0.9rem; margin-top: 0.5rem;">Version {project.version}</p>
+    </div>
+    
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="entities.html">Entities</a>
+        <a href="relations.html">Relations</a>
+        <a href="graph.html">Graph Visualization</a>
+        <a href="lineage.html">Lineage</a>
+    </nav>
+    
+    <div class="container">
+        <h2>Project Overview</h2>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">{len(project.entities)}</div>
+                <div class="stat-label">Entities</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{len(project.relations)}</div>
+                <div class="stat-label">Relations</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{sum(len(e.properties) for e in project.entities)}</div>
+                <div class="stat-label">Entity Properties</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{sum(len(r.properties) for r in project.relations)}</div>
+                <div class="stat-label">Relation Properties</div>
+            </div>
+        </div>
+        
+        <h2>Documentation Sections</h2>
+        
+        <div class="card-grid">
+            <div class="card">
+                <h3>📦 Entities</h3>
+                <p>Browse all entities in your knowledge graph, including their properties, keys, and source definitions.</p>
+                <a href="entities.html">View Entities →</a>
+            </div>
+            
+            <div class="card">
+                <h3>🔗 Relations</h3>
+                <p>Explore relationships between entities, their mappings, and additional properties.</p>
+                <a href="relations.html">View Relations →</a>
+            </div>
+            
+            <div class="card">
+                <h3>🕸️ Graph Visualization</h3>
+                <p>Interactive visualization of your entire knowledge graph showing entities and their connections.</p>
+                <a href="graph.html">View Graph →</a>
+            </div>
+            
+            <div class="card">
+                <h3>🔄 Lineage</h3>
+                <p>Visualize data lineage and dependencies between entities, relations, and source systems.</p>
+                <a href="lineage.html">View Lineage →</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Generated by <strong>grai.build</strong> - Declarative Knowledge Graph Modeling</p>
+    </footer>
+</body>
+</html>
+"""
+
+
+def _generate_entity_catalog_html(project: Project) -> str:
+    """Generate entity catalog HTML page."""
+    entities_html = ""
+    for entity in sorted(project.entities, key=lambda e: e.entity):
+        props_html = "".join([
+            f"<tr><td><code>{p.name}</code></td><td>{p.type.value}</td><td>{'✓' if getattr(p, 'required', False) else ''}</td><td>{getattr(p, 'description', '')}</td></tr>"
+            for p in entity.properties
+        ])
+        
+        entities_html += f"""
+        <div class="entity-card">
+            <h3>🔹 {entity.entity}</h3>
+            <div class="meta">
+                <div><strong>Source:</strong> <code>{entity.source}</code></div>
+                <div><strong>Keys:</strong> <code>{', '.join(entity.keys)}</code></div>
+            </div>
+            {f'<p class="description">{entity.description}</p>' if hasattr(entity, 'description') and entity.description else ''}
+            <h4>Properties ({len(entity.properties)})</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {props_html if props_html else '<tr><td colspan="4"><em>No properties defined</em></td></tr>'}
+                </tbody>
+            </table>
+        </div>
+        """
+    
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entities - {project.name}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }}
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        nav {{
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }}
+        nav a {{
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 2rem;
+            font-weight: 500;
+        }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }}
+        .entity-card {{
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+        .entity-card h3 {{
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }}
+        .meta {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }}
+        .description {{
+            padding: 1rem;
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            margin: 1rem 0;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }}
+        th, td {{
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e0e0e0;
+        }}
+        th {{
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }}
+        code {{
+            background: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 Entities</h1>
+        <p>{project.name} - Entity Catalog</p>
+    </div>
+    
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="entities.html">Entities</a>
+        <a href="relations.html">Relations</a>
+        <a href="graph.html">Graph Visualization</a>
+        <a href="lineage.html">Lineage</a>
+    </nav>
+    
+    <div class="container">
+        <p style="margin-bottom: 2rem;">
+            This page lists all entities in your knowledge graph. Each entity represents a node type with defined properties and keys.
+        </p>
+        {entities_html}
+    </div>
+</body>
+</html>
+"""
+
+
+def _generate_relation_catalog_html(project: Project) -> str:
+    """Generate relation catalog HTML page."""
+    relations_html = ""
+    for relation in sorted(project.relations, key=lambda r: r.relation):
+        props_html = "".join([
+            f"<tr><td><code>{p.name}</code></td><td>{p.type.value}</td><td>{'✓' if getattr(p, 'required', False) else ''}</td><td>{getattr(p, 'description', '')}</td></tr>"
+            for p in relation.properties
+        ])
+        
+        relations_html += f"""
+        <div class="relation-card">
+            <h3>🔗 {relation.relation}</h3>
+            <div class="mapping">
+                <span class="entity">{relation.from_entity}</span>
+                <span class="arrow">→</span>
+                <span class="entity">{relation.to_entity}</span>
+            </div>
+            <div class="meta">
+                <div><strong>Source:</strong> <code>{relation.source}</code></div>
+                <div><strong>From Key:</strong> <code>{relation.mappings.from_key}</code></div>
+                <div><strong>To Key:</strong> <code>{relation.mappings.to_key}</code></div>
+            </div>
+            {f'<p class="description">{relation.description}</p>' if hasattr(relation, 'description') and relation.description else ''}
+            <h4>Properties ({len(relation.properties)})</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {props_html if props_html else '<tr><td colspan="4"><em>No properties defined</em></td></tr>'}
+                </tbody>
+            </table>
+        </div>
+        """
+    
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relations - {project.name}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }}
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        nav {{
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }}
+        nav a {{
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 2rem;
+            font-weight: 500;
+        }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }}
+        .relation-card {{
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+        .relation-card h3 {{
+            color: #764ba2;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }}
+        .mapping {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8f3ff;
+            border-radius: 4px;
+            font-size: 1.1rem;
+        }}
+        .entity {{
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }}
+        .arrow {{
+            font-size: 1.5rem;
+            color: #764ba2;
+        }}
+        .meta {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }}
+        .description {{
+            padding: 1rem;
+            background: #f0f4ff;
+            border-left: 4px solid #764ba2;
+            margin: 1rem 0;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }}
+        th, td {{
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e0e0e0;
+        }}
+        th {{
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }}
+        code {{
+            background: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔗 Relations</h1>
+        <p>{project.name} - Relation Catalog</p>
+    </div>
+    
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="entities.html">Entities</a>
+        <a href="relations.html">Relations</a>
+        <a href="graph.html">Graph Visualization</a>
+        <a href="lineage.html">Lineage</html>
+    </nav>
+    
+    <div class="container">
+        <p style="margin-bottom: 2rem;">
+            This page lists all relations in your knowledge graph. Each relation represents an edge type connecting two entity types.
+        </p>
+        {relations_html}
+    </div>
+</body>
+</html>
+"""
+
+
+def _generate_lineage_html(project: Project, mermaid_diagram: str) -> str:
+    """Generate lineage HTML page with Mermaid diagram."""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lineage - {project.name}</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }}
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        nav {{
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }}
+        nav a {{
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 2rem;
+            font-weight: 500;
+        }}
+        .container {{
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }}
+        .diagram-container {{
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }}
+    </style>
+    <script>
+        mermaid.initialize({{ startOnLoad: true, theme: 'default' }});
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h1>🔄 Lineage</h1>
+        <p>{project.name} - Data Lineage & Dependencies</p>
+    </div>
+    
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="entities.html">Entities</a>
+        <a href="relations.html">Relations</a>
+        <a href="graph.html">Graph Visualization</a>
+        <a href="lineage.html">Lineage</a>
+    </nav>
+    
+    <div class="container">
+        <p style="margin-bottom: 2rem;">
+            This diagram shows the data lineage of your knowledge graph, illustrating how source systems flow into entities and how entities connect through relations.
+        </p>
+        
+        <div class="diagram-container">
+            <pre class="mermaid">
+{mermaid_diagram}
+            </pre>
+        </div>
+    </div>
+</body>
+</html>
+"""
 
 
 def main_cli():
