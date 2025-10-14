@@ -7,14 +7,21 @@
 
 ## 📘 What is grai.build?
 
-`grai.build` is an open-source developer tool that brings the declarative, YAML-based modeling approach of [dbt](https://www.getdbt.com/) to knowledge graphs.
+**grai.build is schema-as-code for graph databases** - like dbt, but for knowledge graphs.
 
-Define your entities and relations in simple YAML files, and grai will:
+It manages your graph **schema**, not your data. You define entities and relations in YAML, and grai.build:
 
-- ✅ Validate your schema for consistency
-- ✅ Compile to Cypher (Neo4j) or Gremlin queries
-- ✅ Execute against your graph database
-- ✅ Track changes and provide lineage
+- ✅ **Validates** your schema for consistency
+- ✅ **Generates** Cypher constraints and indexes
+- ✅ **Documents** your graph structure automatically
+- ✅ **Integrates** with your CI/CD pipeline
+
+**What it's NOT:**
+- ❌ Not an ETL tool (use Airflow, Prefect, or dbt for data loading)
+- ❌ Not a data pipeline (use Kafka, CDC, or application code for that)
+- ❌ Not a replacement for your existing data infrastructure
+
+**Think of it as:** Database migrations (Alembic, Flyway) for graph databases. You manage the schema, your pipelines manage the data.
 
 ## 🚀 Quick Start
 
@@ -34,8 +41,11 @@ cd my-graph-project
 # Build and validate
 grai build
 
-# Execute against Neo4j
-grai build --execute --uri bolt://localhost:7687 --user neo4j --password secret
+# Deploy schema to Neo4j
+grai run --uri bolt://localhost:7687 --user neo4j --password secret
+
+# Load sample data for local testing
+grai run --load-csv --password secret
 ```
 
 ## 📂 Project Structure
@@ -121,6 +131,78 @@ SET r.order_id = row.order_id,
 - **CLI-first** - Integrates into your CI/CD pipeline
 - **Type-safe** - Built with Pydantic for robust validation
 - **Extensible** - Easy to add custom backends and transformations
+
+## 🏗️ Real-World Usage
+
+### Local Development
+
+```bash
+# 1. Define schema
+vim entities/customer.yml
+
+# 2. Validate
+grai validate
+
+# 3. Deploy schema
+grai run --schema-only
+
+# 4. Test with sample data
+grai run --load-csv
+```
+
+### Production Deployment
+
+```yaml
+# .github/workflows/deploy-schema.yml
+name: Deploy Graph Schema
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Validate Schema
+        run: grai validate
+      
+      - name: Deploy to Production
+        run: |
+          grai run --schema-only \
+            --uri ${{ secrets.NEO4J_URI }} \
+            --user ${{ secrets.NEO4J_USER }} \
+            --password ${{ secrets.NEO4J_PASSWORD }}
+```
+
+### With Your ETL Pipeline
+
+```python
+# Your Airflow DAG
+from airflow import DAG
+from airflow.operators.bash import BashOperator
+from your_etl import load_customers_to_neo4j
+
+dag = DAG('graph_pipeline')
+
+# 1. grai.build ensures schema is up-to-date
+deploy_schema = BashOperator(
+    task_id='deploy_schema',
+    bash_command='grai run --schema-only',
+    dag=dag
+)
+
+# 2. Your ETL loads the actual data
+load_data = PythonOperator(
+    task_id='load_data',
+    python_callable=load_customers_to_neo4j,
+    dag=dag
+)
+
+deploy_schema >> load_data
+```
 
 ## 📦 Architecture
 
