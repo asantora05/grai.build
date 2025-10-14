@@ -72,13 +72,14 @@ class TestInitCommand:
         assert "my-custom-name" in grai_yml
 
     def test_init_fails_if_exists(self, tmp_path):
-        """Test that init fails if directory exists without --force."""
+        """Test that init fails if grai.yml already exists without --force."""
         project_dir = tmp_path / "test-project"
         project_dir.mkdir()
+        (project_dir / "grai.yml").write_text("existing project")
         
         result = runner.invoke(app, ["init", str(project_dir)])
         assert result.exit_code == 1
-        assert "already exists" in result.stdout.lower()
+        assert "already initialized" in result.stdout.lower()
 
     def test_init_with_force_overwrites(self, tmp_path):
         """Test that init with --force overwrites existing files."""
