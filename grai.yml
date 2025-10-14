@@ -1,0 +1,19 @@
+# Example grai.build project manifest
+name: example-project
+version: 1.0.0
+
+config:
+  # Neo4j connection settings (used with --execute)
+  neo4j:
+    uri: bolt://localhost:7687
+    database: neo4j
+
+  # Compiler settings
+  compiler:
+    backend: neo4j
+    output_dir: target/neo4j
+
+  # Validation settings
+  validator:
+    strict_mode: true
+    allow_missing_properties: false
