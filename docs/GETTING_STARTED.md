@@ -258,7 +258,7 @@ SET r.order_id = row.order_id,
 
 ```bash
 # Build and execute in one command
-grai build --execute \
+grai run \
   --uri bolt://localhost:7687 \
   --user neo4j \
   --password graipassword
@@ -539,7 +539,7 @@ grai build
 cat target/neo4j/compiled.cypher
 
 # 5. Execute when satisfied
-grai build --execute --uri bolt://localhost:7687 --user neo4j --password graipassword
+grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
 ```
 
 ### Workflow 2: Add New Entity
@@ -563,7 +563,7 @@ EOF
 
 # Validate and build
 grai validate
-grai build --execute --uri bolt://localhost:7687 --user neo4j --password graipassword
+grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
 ```
 
 ### Workflow 3: Generate Documentation
@@ -649,7 +649,7 @@ grai validate
 grai build
 
 # Build and execute
-grai build --execute --uri bolt://localhost:7687 --user neo4j --password graipassword
+grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
 
 # Visualize
 grai visualize --format d3 --open
@@ -687,7 +687,7 @@ Database: neo4j
 - [ ] Ran `grai validate` successfully
 - [ ] Ran `grai build` to see compiled Cypher
 - [ ] Neo4j is running and accessible
-- [ ] Ran `grai build --execute` to load schema
+- [ ] Ran `grai run` to load schema
 - [ ] Verified in Neo4j Browser
 - [ ] (Optional) Loaded sample data
 - [ ] (Optional) Generated visualization

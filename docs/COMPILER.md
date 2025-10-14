@@ -418,7 +418,7 @@ The compiler integrates with:
 grai build
 
 # Compile and execute
-grai build --execute --uri bolt://localhost:7687
+grai run --uri bolt://localhost:7687
 
 # Compile schema only
 grai build --schema-only
