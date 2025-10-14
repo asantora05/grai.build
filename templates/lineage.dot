@@ -1,0 +1,15 @@
+digraph lineage {
+    rankdir=LR;
+    node [shape=box, style=rounded];
+    entity_customer [label="customer", fillcolor="#e1f5ff", style="filled,rounded"];
+    source_analytics.customers [label="analytics.customers", shape=cylinder, fillcolor="#f3e5f5", style="filled"];
+    entity_product [label="product", fillcolor="#e1f5ff", style="filled,rounded"];
+    source_analytics.products [label="analytics.products", shape=cylinder, fillcolor="#f3e5f5", style="filled"];
+    relation_PURCHASED [label="PURCHASED", shape=diamond, fillcolor="#fff9c4", style="filled"];
+    source_analytics.orders [label="analytics.orders", shape=cylinder, fillcolor="#f3e5f5", style="filled"];
+    source_analytics.customers -> entity_customer [label="produces"];
+    source_analytics.products -> entity_product [label="produces"];
+    source_analytics.orders -> relation_PURCHASED [label="produces"];
+    entity_customer -> relation_PURCHASED [label="participates_in"];
+    relation_PURCHASED -> entity_product [label="connects_to"];
+}

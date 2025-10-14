@@ -1,0 +1,15 @@
+# Example grai.build project
+name: example-ecommerce-graph
+version: 1.0.0
+
+config:
+  neo4j:
+    uri: bolt://localhost:7687
+    database: neo4j
+
+  compiler:
+    backend: neo4j
+    output_dir: target/neo4j
+
+  validator:
+    strict_mode: true

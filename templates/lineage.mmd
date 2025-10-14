@@ -1,0 +1,18 @@
+graph LR
+    entity_customer["customer"]
+    style entity_customer fill:#e1f5ff,stroke:#0288d1
+    source_analytics.customers[("analytics.customers")]
+    style source_analytics.customers fill:#f3e5f5,stroke:#7b1fa2
+    entity_product["product"]
+    style entity_product fill:#e1f5ff,stroke:#0288d1
+    source_analytics.products[("analytics.products")]
+    style source_analytics.products fill:#f3e5f5,stroke:#7b1fa2
+    relation_PURCHASED{"PURCHASED"}
+    style relation_PURCHASED fill:#fff9c4,stroke:#f57f17
+    source_analytics.orders[("analytics.orders")]
+    style source_analytics.orders fill:#f3e5f5,stroke:#7b1fa2
+    source_analytics.customers -->|produces| entity_customer
+    source_analytics.products -->|produces| entity_product
+    source_analytics.orders -->|produces| relation_PURCHASED
+    entity_customer -->|participates_in| relation_PURCHASED
+    relation_PURCHASED -->|connects_to| entity_product

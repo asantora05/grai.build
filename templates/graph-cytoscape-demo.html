@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Graph - Cytoscape.js - Knowledge Graph Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #cy {
+            width: 1200px;
+            height: 800px;
+            background: white;
+        }
+        .legend {
+            padding: 20px;
+            background: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+        }
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .legend-items {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Knowledge Graph - Cytoscape.js</h1>
+            <div class="stats">
+                <div class="stat">
+                    <span>📊</span>
+                    <span>6 nodes</span>
+                </div>
+                <div class="stat">
+                    <span>🔗</span>
+                    <span>5 edges</span>
+                </div>
+                <div class="stat">
+                    <span>🏢</span>
+                    <span>2 entities</span>
+                </div>
+                <div class="stat">
+                    <span>↔️</span>
+                    <span>1 relations</span>
+                </div>
+                <div class="stat">
+                    <span>📁</span>
+                    <span>3 sources</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="cy"></div>
+        
+        <div class="legend">
+            <div class="legend-title">Legend</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4fc3f7;"></div>
+                    <span>Entity</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffd54f;"></div>
+                    <span>Relation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ba68c8;"></div>
+                    <span>Source</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const cy = cytoscape({
+            container: document.getElementById('cy'),
+            elements: [{"data": {"id": "entity:customer", "label": "customer", "type": "entity"}}, {"data": {"id": "source:analytics.customers", "label": "analytics.customers", "type": "source"}}, {"data": {"id": "entity:product", "label": "product", "type": "entity"}}, {"data": {"id": "source:analytics.products", "label": "analytics.products", "type": "source"}}, {"data": {"id": "relation:PURCHASED", "label": "PURCHASED", "type": "relation"}}, {"data": {"id": "source:analytics.orders", "label": "analytics.orders", "type": "source"}}, {"data": {"source": "source:analytics.customers", "target": "entity:customer", "label": "produces"}}, {"data": {"source": "source:analytics.products", "target": "entity:product", "label": "produces"}}, {"data": {"source": "source:analytics.orders", "target": "relation:PURCHASED", "label": "produces"}}, {"data": {"source": "entity:customer", "target": "relation:PURCHASED", "label": "participates_in"}}, {"data": {"source": "relation:PURCHASED", "target": "entity:product", "label": "connects_to"}}],
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(label)',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'font-size': '12px',
+                        'background-color': '#4fc3f7',
+                        'border-width': 2,
+                        'border-color': '#fff',
+                        'width': 40,
+                        'height': 40
+                    }
+                },
+                {
+                    selector: 'node[type="entity"]',
+                    style: {
+                        'background-color': '#4fc3f7',
+                        'shape': 'roundrectangle'
+                    }
+                },
+                {
+                    selector: 'node[type="relation"]',
+                    style: {
+                        'background-color': '#ffd54f',
+                        'shape': 'diamond'
+                    }
+                },
+                {
+                    selector: 'node[type="source"]',
+                    style: {
+                        'background-color': '#ba68c8',
+                        'shape': 'ellipse'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'line-color': '#999',
+                        'target-arrow-color': '#999',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'label': 'data(label)',
+                        'font-size': '10px',
+                        'text-rotation': 'autorotate',
+                        'text-margin-y': -10
+                    }
+                }
+            ],
+            layout: {
+                name: 'cose',
+                animate: true,
+                animationDuration: 1000,
+                nodeRepulsion: 8000,
+                idealEdgeLength: 100,
+                edgeElasticity: 100,
+                nestingFactor: 5,
+                gravity: 80,
+                numIter: 1000,
+                initialTemp: 200,
+                coolingFactor: 0.95,
+                minTemp: 1.0
+            }
+        });
+        
+        // Add click handlers
+        cy.on('tap', 'node', function(evt) {
+            const node = evt.target;
+            console.log('Clicked node:', node.data());
+        });
+    </script>
+</body>
+</html>
