@@ -54,5 +54,18 @@ target/
 .DS_Store
 .grai/
 
+# Test/example data directories (should use templates/ instead)
+/entities/
+/relations/
+/data/
+
+# Generated documentation (keep docs/*.md, ignore generated HTML)
+docs/*.html
+docs/graph.html
+docs/entities.html
+docs/relations.html
+docs/lineage.html
+docs/index.html
+
 # Neo4j
 .neo4j/

@@ -1601,7 +1601,7 @@ def docs(
         help="Path to grai.build project directory.",
     ),
     output_dir: Path = typer.Option(
-        Path("docs"),
+        Path("target/docs"),
         "--output",
         "-o",
         help="Output directory for documentation.",
@@ -1635,9 +1635,10 @@ def docs(
     - Searchable property reference
     
     Examples:
-        grai docs                    # Generate docs in ./docs
-        grai docs --serve            # Generate and serve on http://localhost:8080
+        grai docs                      # Generate docs in target/docs
+        grai docs --serve              # Generate and serve on http://localhost:8080
         grai docs --serve --port 3000  # Serve on custom port
+        grai docs --output ./my-docs   # Custom output directory
     """
     from grai.core.exporter import export_to_json
     import json
