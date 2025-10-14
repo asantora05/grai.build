@@ -80,13 +80,13 @@ def main(
 def init(
     path: Path = typer.Argument(
         Path("."),
-        help="Directory to initialize project in.",
+        help="Directory to initialize project in (default: current directory).",
     ),
-    name: str = typer.Option(
-        "my-knowledge-graph",
+    name: Optional[str] = typer.Option(
+        None,
         "--name",
         "-n",
-        help="Project name.",
+        help="Project name (default: directory name).",
     ),
     force: bool = typer.Option(
         False,
@@ -96,18 +96,31 @@ def init(
     ),
 ):
     """
-    Initialize a new grai.build project.
+    Initialize a new grai.build project in the current directory.
     
     Creates a starter project with example entities and relations.
+    Initializes in the current directory by default (like git init, npm init).
+    
+    Examples:
+        grai init                    # Initialize in current directory
+        grai init --name my-graph    # Initialize with custom project name
+        grai init /path/to/project   # Initialize in specific directory
     """
+    project_dir = path.resolve()
+    
+    # Infer project name from directory if not provided
+    if name is None:
+        name = project_dir.name
+        if name == ".":
+            name = "my-knowledge-graph"
+    
     console.print(f"\n[bold cyan]🚀 Initializing grai.build project: {name}[/bold cyan]\n")
     
-    project_dir = path / name if path == Path(".") else path
-    
-    # Check if directory exists
-    if project_dir.exists() and not force:
-        console.print(f"[red]✗ Directory already exists: {project_dir}[/red]")
-        console.print("[yellow]Use --force to overwrite[/yellow]")
+    # Check if grai.yml already exists (not the directory itself)
+    grai_yml_path = project_dir / "grai.yml"
+    if grai_yml_path.exists() and not force:
+        console.print(f"[red]✗ Project already initialized (grai.yml exists)[/red]")
+        console.print("[yellow]Use --force to overwrite existing files[/yellow]")
         raise typer.Exit(code=1)
     
     # Create directory structure
@@ -275,12 +288,19 @@ grai run --uri bolt://localhost:7687 --user neo4j --password password
         console.print(f"\n[bold green]✓ Successfully initialized project: {name}[/bold green]\n")
         
         # Show next steps
+        next_steps = "[bold]Next Steps:[/bold]\n\n"
+        if project_dir != Path(".").resolve():
+            next_steps += f"1. cd {project_dir}\n"
+            next_steps += f"2. grai validate   # Check your definitions\n"
+            next_steps += f"3. grai build      # Compile to Cypher\n"
+            next_steps += f"4. grai run        # Execute against Neo4j"
+        else:
+            next_steps += f"1. grai validate   # Check your definitions\n"
+            next_steps += f"2. grai build      # Compile to Cypher\n"
+            next_steps += f"3. grai run        # Execute against Neo4j"
+        
         panel = Panel(
-            f"[bold]Next Steps:[/bold]\n\n"
-            f"1. cd {project_dir}\n"
-            f"2. grai validate   # Check your definitions\n"
-            f"3. grai build      # Compile to Cypher\n"
-            f"4. grai run        # Execute against Neo4j",
+            next_steps,
             title="[bold cyan]Get Started[/bold cyan]",
             border_style="cyan",
         )
