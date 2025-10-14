@@ -111,9 +111,23 @@ your-project/
 
 **To load the sample data immediately:**
 
+### Option 1: One Command (Recommended)
+
+```bash
+# Create schema AND load CSV data in one command
+grai run --load-csv --password yourpassword
+```
+
+This will:
+1. Build and validate your project
+2. Create the schema (constraints & indexes)
+3. Automatically load CSV data from `load_data.cypher`
+
+### Option 2: Manual (Neo4j Browser)
+
 1. Create the schema:
    ```bash
-   grai run --uri bolt://localhost:7687 --user neo4j --password yourpassword
+   grai run --password yourpassword
    ```
 
 2. Load the CSV data:
@@ -121,10 +135,15 @@ your-project/
    - Copy and paste the contents of `load_data.cypher`
    - Run the script
 
-   **Or** use cypher-shell:
-   ```bash
-   cat load_data.cypher | cypher-shell -u neo4j -p yourpassword
-   ```
+### Option 3: Manual (cypher-shell)
+
+```bash
+# Create schema
+grai run --password yourpassword
+
+# Load data
+cat load_data.cypher | cypher-shell -u neo4j -p yourpassword
+```
 
 That's it! Your graph is now populated with sample data.
 

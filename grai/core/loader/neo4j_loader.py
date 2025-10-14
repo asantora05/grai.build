@@ -205,13 +205,19 @@ def split_cypher_statements(cypher: str) -> List[str]:
         This is a simple implementation that splits on semicolons.
         It does not handle semicolons within strings or comments.
     """
-    # Remove comments
+    # Remove comments (but not // inside quoted strings)
     lines = []
     for line in cypher.split("\n"):
-        # Remove single-line comments
-        if "//" in line:
-            line = line[:line.index("//")]
-        lines.append(line)
+        # Simple check: if line has quotes, keep it as-is (might contain // in URLs)
+        # Otherwise, remove // comments
+        if "'" in line or '"' in line:
+            # Line might contain URLs or strings, keep it as-is
+            lines.append(line)
+        else:
+            # Remove single-line comments
+            if "//" in line:
+                line = line[:line.index("//")]
+            lines.append(line)
     
     cypher_no_comments = "\n".join(lines)
     

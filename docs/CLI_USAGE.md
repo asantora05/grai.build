@@ -192,6 +192,7 @@ grai run --password mypassword
 - `--file, -f` - Cypher file to execute (default: `target/neo4j/compiled.cypher`)
 - `--schema-only` - Create only schema (default: `True`)
 - `--with-data` - Include data loading statements (requires LOAD CSV context)
+- `--load-csv` - Load CSV data from data/ directory after creating schema
 - `--dry-run` - Show what would be executed without running
 - `--skip-build` - Skip building before execution
 - `--verbose, -v` - Show detailed execution output
@@ -202,6 +203,9 @@ grai run --password mypassword
 ```bash
 # Create schema only (default, recommended for getting started)
 grai run
+
+# Create schema AND load CSV data in one command
+grai run --load-csv --password secret
 
 # Create schema with explicit flag
 grai run --schema-only

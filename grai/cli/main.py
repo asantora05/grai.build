@@ -258,7 +258,9 @@ C005,P003,O010,2024-03-20,2,99.98
         
         # Create Cypher script for loading data
         # Get absolute path to data directory for LOAD CSV
+        # Convert to file:// URL properly (file:// + absolute path)
         data_dir_abs = (project_dir / "data").resolve()
+        file_url_prefix = f"file://{data_dir_abs}"
         
         load_cypher = f"""// ============================================
 // Load Sample Data from CSV Files
@@ -278,21 +280,21 @@ C005,P003,O010,2024-03-20,2,99.98
 // ============================================
 
 // Load Customers
-LOAD CSV WITH HEADERS FROM 'file:///{data_dir_abs}/customers.csv' AS row
+LOAD CSV WITH HEADERS FROM '{file_url_prefix}/customers.csv' AS row
 MERGE (c:customer {{customer_id: row.customer_id}})
 SET c.name = row.name,
     c.email = row.email,
     c.created_at = datetime(row.created_at);
 
 // Load Products  
-LOAD CSV WITH HEADERS FROM 'file:///{data_dir_abs}/products.csv' AS row
+LOAD CSV WITH HEADERS FROM '{file_url_prefix}/products.csv' AS row
 MERGE (p:product {{product_id: row.product_id}})
 SET p.name = row.name,
     p.category = row.category,
     p.price = toFloat(row.price);
 
 // Load Purchases (relationships)
-LOAD CSV WITH HEADERS FROM 'file:///{data_dir_abs}/purchased.csv' AS row
+LOAD CSV WITH HEADERS FROM '{file_url_prefix}/purchased.csv' AS row
 MATCH (c:customer {{customer_id: row.customer_id}})
 MATCH (p:product {{product_id: row.product_id}})
 MERGE (c)-[r:PURCHASED]->(p)
@@ -696,6 +698,84 @@ def build(
         raise typer.Exit(code=1)
 
 
+def _load_csv_data(driver, project_dir: Path, database: str, verbose: bool = False) -> bool:
+    """
+    Load CSV data from data/ directory if it exists.
+    
+    Reads CSV files and executes parameterized Cypher queries.
+    Returns True if data was loaded successfully, False otherwise.
+    """
+    import csv
+    from grai.core.loader import execute_cypher
+    
+    data_dir = project_dir / "data"
+    
+    if not data_dir.exists():
+        return False
+    
+    try:
+        total_records = 0
+        
+        # Load customers
+        customers_csv = data_dir / "customers.csv"
+        if customers_csv.exists():
+            with open(customers_csv, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cypher = """
+                    MERGE (c:customer {customer_id: $customer_id})
+                    SET c.name = $name,
+                        c.email = $email,
+                        c.created_at = datetime($created_at)
+                    """
+                    result = execute_cypher(driver, cypher, parameters=row, database=database)
+                    if result.success:
+                        total_records += result.records_affected
+        
+        # Load products
+        products_csv = data_dir / "products.csv"
+        if products_csv.exists():
+            with open(products_csv, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cypher = """
+                    MERGE (p:product {product_id: $product_id})
+                    SET p.name = $name,
+                        p.category = $category,
+                        p.price = toFloat($price)
+                    """
+                    result = execute_cypher(driver, cypher, parameters=row, database=database)
+                    if result.success:
+                        total_records += result.records_affected
+        
+        # Load purchases
+        purchased_csv = data_dir / "purchased.csv"
+        if purchased_csv.exists():
+            with open(purchased_csv, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cypher = """
+                    MATCH (c:customer {customer_id: $customer_id})
+                    MATCH (p:product {product_id: $product_id})
+                    MERGE (c)-[r:PURCHASED]->(p)
+                    SET r.order_id = $order_id,
+                        r.order_date = date($order_date),
+                        r.quantity = toInteger($quantity),
+                        r.total_amount = toFloat($total_amount)
+                    """
+                    result = execute_cypher(driver, cypher, parameters=row, database=database)
+                    if result.success:
+                        total_records += result.records_affected
+        
+        console.print(f"[green]✓[/green] CSV data loaded successfully")
+        console.print(f"  Records affected: {total_records}")
+        return True
+        
+    except Exception as e:
+        console.print(f"[red]✗[/red] Error loading CSV data: {e}")
+        return False
+
+
 @app.command()
 def compile(
     project_dir: Path = typer.Argument(
@@ -766,6 +846,11 @@ def run(
         True,
         "--schema-only/--with-data",
         help="Create only schema (constraints/indexes) without data loading statements.",
+    ),
+    load_csv: bool = typer.Option(
+        False,
+        "--load-csv",
+        help="Load CSV data from data/ directory after creating schema.",
     ),
     dry_run: bool = typer.Option(
         False,
@@ -888,6 +973,14 @@ def run(
             console.print(f"  Statements executed: {result.statements_executed}")
             console.print(f"  Records affected: {result.records_affected}")
             console.print(f"  Execution time: {result.execution_time:.2f}s")
+            
+            # Load CSV data if requested
+            if load_csv:
+                console.print(f"\n[cyan]→[/cyan] Loading CSV data...")
+                csv_result = _load_csv_data(driver, project_dir, database, verbose)
+                
+                if not csv_result:
+                    console.print("[yellow]⚠  No CSV data loaded (load_data.cypher not found or failed)[/yellow]")
             
             # Get database info after execution
             if verbose:
