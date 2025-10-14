@@ -256,139 +256,71 @@ C005,P003,O010,2024-03-20,2,99.98
 """
         (project_dir / "data" / "purchased.csv").write_text(purchased_csv)
         
-        # Create data loading script
-        load_script = f"""#!/usr/bin/env python3
-\"\"\"
-Load sample data from CSV files into Neo4j.
-
-This script demonstrates how to use LOAD CSV to import data
-that matches the grai.build schema definitions.
-\"\"\"
-
-from pathlib import Path
-from grai.core.loader.neo4j_loader import (
-    connect_neo4j,
-    execute_cypher,
-    close_connection,
-)
-
-# Connection details (update these for your Neo4j instance)
-URI = "bolt://localhost:7687"
-USER = "neo4j"
-PASSWORD = "graipassword"  # Change this!
-
-# Get the project directory (where this script is located)
-PROJECT_DIR = Path(__file__).parent.absolute()
-DATA_DIR = PROJECT_DIR / "data"
-
-
-def load_customers(driver):
-    \\\"\\\"\\\"Load customers from CSV.\\\"\\\"\\\"
-    csv_path = DATA_DIR / "customers.csv"
-    
-    cypher = f\\\"\\\"\\\"
-    LOAD CSV WITH HEADERS FROM 'file:///{{csv_path}}' AS row
-    MERGE (c:customer {{{{customer_id: row.customer_id}}}})
-    SET c.name = row.name,
-        c.email = row.email,
-        c.created_at = datetime(row.created_at)
-    \\\"\\\"\\\"
-    
-    result = execute_cypher(driver, cypher)
-    return result
-
-
-def load_products(driver):
-    \\\"\\\"\\\"Load products from CSV.\\\"\\\"\\\"
-    csv_path = DATA_DIR / "products.csv"
-    
-    cypher = f\\\"\\\"\\\"
-    LOAD CSV WITH HEADERS FROM 'file:///{{csv_path}}' AS row
-    MERGE (p:product {{{{product_id: row.product_id}}}})
-    SET p.name = row.name,
-        p.category = row.category,
-        p.price = toFloat(row.price)
-    \\\"\\\"\\\"
-    
-    result = execute_cypher(driver, cypher)
-    return result
-
-
-def load_purchases(driver):
-    \\\"\\\"\\\"Load purchase relationships from CSV.\\\"\\\"\\\"
-    csv_path = DATA_DIR / "purchased.csv"
-    
-    cypher = f\\\"\\\"\\\"
-    LOAD CSV WITH HEADERS FROM 'file:///{{csv_path}}' AS row
-    MATCH (c:customer {{{{customer_id: row.customer_id}}}})
-    MATCH (p:product {{{{product_id: row.product_id}}}})
-    MERGE (c)-[r:PURCHASED]->(p)
-    SET r.order_id = row.order_id,
-        r.order_date = date(row.order_date),
-        r.quantity = toInteger(row.quantity),
-        r.total_amount = toFloat(row.total_amount)
-    \\\"\\\"\\\"
-    
-    result = execute_cypher(driver, cypher)
-    return result
-
-
-def main():
-    \"\"\"Main function to load all data.\"\"\"
-    print("\\n📦 Loading sample data from CSV files...\\n")
-    
-    try:
-        # Connect to Neo4j
-        print(f"🔌 Connecting to {{{{URI}}}}...")
-        driver = connect_neo4j(uri=URI, user=USER, password=PASSWORD)
-        print("✅ Connected successfully!\\\\n")
+        # Create Cypher script for loading data
+        # Get absolute path to data directory for LOAD CSV
+        data_dir_abs = (project_dir / "data").resolve()
         
-        # Load customers
-        print("📊 Loading customers...")
-        result = load_customers(driver)
-        if result.success:
-            print(f"   ✅ Loaded customers successfully")
-        else:
-            print(f"   ❌ Error loading customers:")
-            for error in result.errors:
-                print(f"      {{{{error}}}}")
-        
-        # Load products
-        print("📊 Loading products...")
-        result = load_products(driver)
-        if result.success:
-            print(f"   ✅ Loaded products successfully")
-        else:
-            print(f"   ❌ Error loading products:")
-            for error in result.errors:
-                print(f"      {{{{error}}}}")
-        
-        # Load purchases
-        print("📊 Loading purchases...")
-        result = load_purchases(driver)
-        if result.success:
-            print(f"   ✅ Loaded purchases successfully")
-        else:
-            print(f"   ❌ Error loading purchases:")
-            for error in result.errors:
-                print(f"      {{{{error}}}}")
-        
-        # Close connection
-        close_connection(driver)
-        
-        print("\\\\n✅ Data loading complete!\\\\n")
-        print("🌐 Open Neo4j Browser (http://localhost:7474) to explore your graph\\\\n")
-        
-    except Exception as e:
-        print(f"\\\\n❌ Error: {{{{e}}}}\\\\n")
-        import traceback
-        traceback.print_exc()
+        load_cypher = f"""// ============================================
+// Load Sample Data from CSV Files
+// ============================================
+// 
+// This script loads sample data into Neo4j using LOAD CSV.
+// Make sure you've already created the schema with: grai run
+//
+// To use this script:
+// 1. Open Neo4j Browser (http://localhost:7474)
+// 2. Copy and paste this entire script
+// 3. Run it
+//
+// Or use cypher-shell:
+//   cat load_data.cypher | cypher-shell -u neo4j -p yourpassword
+//
+// ============================================
 
+// Load Customers
+LOAD CSV WITH HEADERS FROM 'file:///{data_dir_abs}/customers.csv' AS row
+MERGE (c:customer {{customer_id: row.customer_id}})
+SET c.name = row.name,
+    c.email = row.email,
+    c.created_at = datetime(row.created_at);
 
-if __name__ == "__main__":
-    main()
+// Load Products  
+LOAD CSV WITH HEADERS FROM 'file:///{data_dir_abs}/products.csv' AS row
+MERGE (p:product {{product_id: row.product_id}})
+SET p.name = row.name,
+    p.category = row.category,
+    p.price = toFloat(row.price);
+
+// Load Purchases (relationships)
+LOAD CSV WITH HEADERS FROM 'file:///{data_dir_abs}/purchased.csv' AS row
+MATCH (c:customer {{customer_id: row.customer_id}})
+MATCH (p:product {{product_id: row.product_id}})
+MERGE (c)-[r:PURCHASED]->(p)
+SET r.order_id = row.order_id,
+    r.order_date = date(row.order_date),
+    r.quantity = toInteger(row.quantity),
+    r.total_amount = toFloat(row.total_amount);
+
+// ============================================
+// Verify the data was loaded
+// ============================================
+
+// Count nodes
+MATCH (n)
+RETURN labels(n) AS type, count(n) AS count
+ORDER BY type;
+
+// Count relationships
+MATCH ()-[r]->()
+RETURN type(r) AS relationship, count(r) AS count;
+
+// Show sample data
+MATCH (c:customer)-[p:PURCHASED]->(prod:product)
+RETURN c.name, prod.name, p.order_date, p.total_amount
+ORDER BY p.order_date
+LIMIT 5;
 """
-        (project_dir / "load_data.py").write_text(load_script)
+        (project_dir / "load_data.cypher").write_text(load_cypher)
         
         # Create README
         readme = f"""# {name}
@@ -467,13 +399,16 @@ ORDER BY total_spent DESC
 
 ## Next Steps
 
-1. Edit entity definitions in `entities/`
-2. Edit relation definitions in `relations/`
-3. Modify CSV files in `data/` with your own data
-4. Run `grai validate` to check for errors
-5. Run `grai build` to compile to Cypher
-6. Run `grai run` to update schema
-7. Run `python load_data.py` to load your data
+1. Start your Neo4j database
+2. Run `grai run` to create the schema (constraints & indexes)
+3. Load sample data:
+   - Open Neo4j Browser (http://localhost:7474)
+   - Copy/paste the contents of `load_data.cypher` and run it
+4. Edit entity definitions in `entities/` as needed
+5. Edit relation definitions in `relations/` as needed
+6. Modify CSV files in `data/` with your own data
+7. Run `grai validate` to check for errors
+8. Run `grai build` to see the compiled Cypher
 
 ## Learn More
 
@@ -490,7 +425,7 @@ ORDER BY total_spent DESC
         console.print(f"[green]✓[/green] Created [cyan]data/customers.csv[/cyan] (5 sample customers)")
         console.print(f"[green]✓[/green] Created [cyan]data/products.csv[/cyan] (6 sample products)")
         console.print(f"[green]✓[/green] Created [cyan]data/purchased.csv[/cyan] (10 sample orders)")
-        console.print(f"[green]✓[/green] Created [cyan]load_data.py[/cyan] (data loading script)")
+        console.print(f"[green]✓[/green] Created [cyan]load_data.cypher[/cyan] (data loading script)")
         console.print(f"[green]✓[/green] Created [cyan]README.md[/cyan]")
         
         console.print(f"\n[bold green]✓ Successfully initialized project: {name}[/bold green]\n")
@@ -501,11 +436,13 @@ ORDER BY total_spent DESC
             next_steps += f"1. cd {project_dir}\n"
             next_steps += f"2. grai validate   # Check your definitions\n"
             next_steps += f"3. grai build      # Compile to Cypher\n"
-            next_steps += f"4. grai run        # Execute against Neo4j"
+            next_steps += f"4. grai run        # Create schema in Neo4j\n"
+            next_steps += f"5. Copy/paste load_data.cypher in Neo4j Browser to load data"
         else:
             next_steps += f"1. grai validate   # Check your definitions\n"
             next_steps += f"2. grai build      # Compile to Cypher\n"
-            next_steps += f"3. grai run        # Execute against Neo4j"
+            next_steps += f"3. grai run        # Create schema in Neo4j\n"
+            next_steps += f"4. Copy/paste load_data.cypher in Neo4j Browser to load data"
         
         panel = Panel(
             next_steps,

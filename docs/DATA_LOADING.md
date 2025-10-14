@@ -98,7 +98,7 @@ This **will fail** if executed directly because `row` is undefined. You need to 
 
 ## 🎁 Quick Start with Sample Data
 
-When you run `grai init`, sample CSV files are automatically created for you:
+When you run `grai init`, sample CSV files and a loading script are automatically created:
 
 ```
 your-project/
@@ -106,7 +106,7 @@ your-project/
 │   ├── customers.csv      # 5 sample customers
 │   ├── products.csv       # 6 sample products
 │   └── purchased.csv      # 10 sample orders
-└── load_data.py           # Ready-to-use loading script
+└── load_data.cypher       # Ready-to-use Cypher script
 ```
 
 **To load the sample data immediately:**
@@ -117,8 +117,13 @@ your-project/
    ```
 
 2. Load the CSV data:
+   - Open Neo4j Browser (http://localhost:7474)
+   - Copy and paste the contents of `load_data.cypher`
+   - Run the script
+
+   **Or** use cypher-shell:
    ```bash
-   python load_data.py
+   cat load_data.cypher | cypher-shell -u neo4j -p yourpassword
    ```
 
 That's it! Your graph is now populated with sample data.
