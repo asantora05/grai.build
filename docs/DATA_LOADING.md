@@ -9,6 +9,7 @@ Complete guide to understanding data loading in grai.build.
 **Important Philosophy:** grai.build is a **schema management tool**, not a **data loading tool**.
 
 Think of it like database migrations:
+
 - **Alembic/Flyway** manage your schema (tables, columns, constraints)
 - **Your application/ETL** manages your data
 - **grai.build** manages your graph schema (entities, relations, constraints)
@@ -17,7 +18,7 @@ Think of it like database migrations:
 ### What grai.build Does
 
 1. **Schema**: Define entities, relations, and properties in YAML
-2. **Validation**: Ensure schema consistency before deployment  
+2. **Validation**: Ensure schema consistency before deployment
 3. **Generation**: Create Cypher constraints and indexes
 4. **Documentation**: Auto-generate visualizations and lineage
 
@@ -30,6 +31,7 @@ Think of it like database migrations:
 ### CSV Loading is for Development Only
 
 The `--load-csv` feature exists **only** for:
+
 - ✅ Quick local testing
 - ✅ Demos and tutorials
 - ✅ Validating schema with sample data

@@ -21,6 +21,7 @@ Like dbt transformed SQL analytics with declarative modeling, grai.build brings 
 ### What We're NOT Solving
 
 We are **not** an ETL tool. We don't:
+
 - Extract data from source systems (use Airbyte, Fivetran, custom APIs)
 - Load data in real-time (use Kafka, CDC, application code)
 - Replace your data pipelines (use Airflow, Prefect, dbt)
@@ -39,11 +40,11 @@ keys: [customer_id]
 properties:
   - name: customer_id
   - name: email
-
 # Your ETL pipeline handles HOW data gets loaded
 ```
 
 **Think of it like database migrations:**
+
 - Alembic/Flyway manage schema changes
 - Your application manages data
 - grai.build is the Alembic for graphs
@@ -55,7 +56,6 @@ properties:
 entity: customer
 source: analytics.customers
 keys: [customer_id]
-
 # Not imperative
 # (no "run this script to create customers")
 ```
@@ -117,6 +117,7 @@ Schema changes go through code review and CI, just like application code.
 ### Inspired by Modern Data Tools
 
 #### **dbt (SQL Transformations)**
+
 ```sql
 -- models/customers.sql
 {{ config(materialized='table') }}
@@ -124,6 +125,7 @@ select * from raw.customers
 ```
 
 **grai.build (Graph Schema)**
+
 ```yaml
 # entities/customer.yml
 entity: customer
@@ -132,6 +134,7 @@ keys: [customer_id]
 ```
 
 #### **Terraform (Infrastructure as Code)**
+
 ```hcl
 resource "aws_instance" "web" {
   ami = "ami-123456"
@@ -139,23 +142,26 @@ resource "aws_instance" "web" {
 ```
 
 **grai.build (Schema as Code)**
+
 ```yaml
 entity: customer
 keys: [customer_id]
 ```
 
 #### **Alembic (Database Migrations)**
+
 ```python
 def upgrade():
     op.add_column('users', sa.Column('email'))
 ```
 
 **grai.build (Graph Migrations)**
+
 ```yaml
 # Version controlled schema changes
 entity: customer
 properties:
-  - name: email  # New property
+  - name: email # New property
 ```
 
 ---
@@ -163,18 +169,22 @@ properties:
 ## 📊 Comparison to Other Tools
 
 ### vs. Neo4j Desktop / Browser
+
 - **Neo4j**: Manual Cypher in a GUI
 - **grai.build**: Declarative schema in version control
 
 ### vs. neo4j-admin import
+
 - **neo4j-admin**: Bulk CSV loading tool
 - **grai.build**: Schema management tool (use both together)
 
 ### vs. Apache AGE / TigerGraph
+
 - **Other Graphs**: Different graph databases
 - **grai.build**: Could support multiple backends (Neo4j first)
 
 ### vs. dbt
+
 - **dbt**: SQL transformations in data warehouses
 - **grai.build**: Schema definitions for graph databases
 - **Use together**: dbt transforms relational data → grai.build defines graph schema
@@ -186,6 +196,7 @@ properties:
 ### ✅ Perfect Use Cases
 
 1. **Microservices with Shared Graph**
+
    ```
    Multiple services write to Neo4j
    → Need consistent schema across services
@@ -193,6 +204,7 @@ properties:
    ```
 
 2. **Analytics Graphs**
+
    ```
    dbt → Data Warehouse → ETL → Neo4j
    → grai.build defines graph schema
@@ -200,6 +212,7 @@ properties:
    ```
 
 3. **Knowledge Graphs**
+
    ```
    Multiple data sources → Graph
    → grai.build defines ontology
@@ -215,12 +228,14 @@ properties:
 ### ❌ Not Ideal Use Cases
 
 1. **Simple Application CRUD**
+
    ```
    Just use Neo4j driver directly in your app
    grai.build adds unnecessary complexity
    ```
 
 2. **One-off Data Imports**
+
    ```
    Use neo4j-admin import or LOAD CSV
    Don't need schema management overhead
@@ -266,7 +281,7 @@ steps:
   - grai validate
   - grai build
   - grai run --schema-only --uri $PROD_URI
-  
+
 # Data Pipeline (Airflow, Prefect, etc.)
 # Your DAG:
 extract_from_postgres()
@@ -280,7 +295,7 @@ load_to_neo4j()  # Uses schema from grai.build
 Developer A              Developer B
      │                        │
      ├─ Add entity            ├─ Add relation
-     ├─ grai validate         ├─ grai validate  
+     ├─ grai validate         ├─ grai validate
      ├─ PR → Review           ├─ PR → Review
      │                        │
      └────────┬───────────────┘
@@ -299,24 +314,28 @@ Developer A              Developer B
 ## 🚀 Future Vision
 
 ### Phase 1: Schema Management (Current)
+
 - ✅ Define entities/relations in YAML
 - ✅ Generate Cypher constraints/indexes
 - ✅ Validate schema consistency
 - ✅ Basic visualization
 
 ### Phase 2: Integration Templates (Next)
+
 - 🔄 Generate ETL boilerplate code
 - 🔄 dbt integration (graph models)
 - 🔄 Airflow operators for graph loading
 - 🔄 FastAPI endpoints for graph CRUD
 
 ### Phase 3: Multi-Backend (Future)
+
 - ⏳ Apache AGE support
 - ⏳ TigerGraph support
 - ⏳ Gremlin-compatible databases
 - ⏳ Cross-platform schema abstraction
 
 ### Phase 4: Advanced Features (Future)
+
 - ⏳ Schema migrations (like Alembic)
 - ⏳ Breaking change detection
 - ⏳ Auto-generated GraphQL APIs
@@ -329,8 +348,9 @@ Developer A              Developer B
 ### 1. **CSV Loading is for Development Only**
 
 The `--load-csv` flag exists for:
+
 - Quick local testing
-- Demos and tutorials  
+- Demos and tutorials
 - Validating schema with sample data
 
 **In production**, you need proper ETL pipelines.
@@ -355,6 +375,7 @@ driver.execute_cypher(read_file('compiled.cypher'))
 ### 3. **Schema Evolution > Data Migration**
 
 Unlike relational databases where migrations are complex:
+
 - Graphs are schema-flexible
 - New properties/labels can be added easily
 - Focus on evolution, not migration
@@ -396,14 +417,17 @@ Documentation stays in sync with code automatically.
 We know we're successful when:
 
 1. **Teams can onboard faster**
+
    - New devs understand graph structure from YAML
    - Documentation is always up-to-date
 
 2. **Schema stays consistent**
+
    - No more "wait, does this node have this property?"
    - CI catches schema violations
 
 3. **Deployment is automated**
+
    - Schema changes deploy through CI/CD
    - No manual Cypher in production
 
@@ -428,6 +452,7 @@ We know we're successful when:
 **"Should I use grai.build if I'm just building a simple app?"**
 
 Probably not. If your app is the only thing writing to Neo4j, just use the driver directly. grai.build adds value when you have:
+
 - Multiple services/teams sharing a graph
 - Need for schema governance
 - CI/CD pipelines
@@ -444,6 +469,7 @@ Use dbt to transform data in your warehouse, then use grai.build to define the s
 **"Why not just write Cypher directly?"**
 
 Same reason you use dbt instead of raw SQL:
+
 - Version control
 - Validation
 - Documentation

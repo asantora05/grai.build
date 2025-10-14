@@ -17,6 +17,7 @@ It manages your graph **schema**, not your data. You define entities and relatio
 - ✅ **Integrates** with your CI/CD pipeline
 
 **What it's NOT:**
+
 - ❌ Not an ETL tool (use Airflow, Prefect, or dbt for data loading)
 - ❌ Not a data pipeline (use Kafka, CDC, or application code for that)
 - ❌ Not a replacement for your existing data infrastructure
@@ -165,10 +166,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Validate Schema
         run: grai validate
-      
+
       - name: Deploy to Production
         run: |
           grai run --schema-only \
