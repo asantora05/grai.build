@@ -96,6 +96,35 @@ This **will fail** if executed directly because `row` is undefined. You need to 
 
 ---
 
+## 🎁 Quick Start with Sample Data
+
+When you run `grai init`, sample CSV files are automatically created for you:
+
+```
+your-project/
+├── data/
+│   ├── customers.csv      # 5 sample customers
+│   ├── products.csv       # 6 sample products
+│   └── purchased.csv      # 10 sample orders
+└── load_data.py           # Ready-to-use loading script
+```
+
+**To load the sample data immediately:**
+
+1. Create the schema:
+   ```bash
+   grai run --uri bolt://localhost:7687 --user neo4j --password yourpassword
+   ```
+
+2. Load the CSV data:
+   ```bash
+   python load_data.py
+   ```
+
+That's it! Your graph is now populated with sample data.
+
+---
+
 ## 🔄 Data Loading Strategies
 
 ### Strategy 1: Python Scripts (Recommended)

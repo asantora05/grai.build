@@ -217,6 +217,179 @@ properties:
 """
         (project_dir / "relations" / "purchased.yml").write_text(purchased_yml)
         
+        # Create data directory for CSV files
+        (project_dir / "data").mkdir(exist_ok=True)
+        
+        # Create sample CSV for customers
+        customer_csv = """customer_id,name,email,created_at
+C001,Alice Johnson,alice@example.com,2024-01-15T10:30:00Z
+C002,Bob Smith,bob@example.com,2024-01-20T14:15:00Z
+C003,Carol Williams,carol@example.com,2024-02-05T09:45:00Z
+C004,David Brown,david@example.com,2024-02-10T16:20:00Z
+C005,Emma Davis,emma@example.com,2024-02-15T11:00:00Z
+"""
+        (project_dir / "data" / "customers.csv").write_text(customer_csv)
+        
+        # Create sample CSV for products
+        product_csv = """product_id,name,category,price
+P001,Laptop Pro 15,Electronics,1299.99
+P002,Wireless Mouse,Accessories,29.99
+P003,USB-C Hub,Accessories,49.99
+P004,Monitor 27",Electronics,399.99
+P005,Keyboard Mechanical,Accessories,129.99
+P006,Webcam HD,Electronics,79.99
+"""
+        (project_dir / "data" / "products.csv").write_text(product_csv)
+        
+        # Create sample CSV for purchases
+        purchased_csv = """customer_id,product_id,order_id,order_date,quantity,total_amount
+C001,P001,O001,2024-03-01,1,1299.99
+C001,P002,O002,2024-03-01,2,59.98
+C002,P003,O003,2024-03-05,1,49.99
+C002,P005,O004,2024-03-05,1,129.99
+C003,P001,O005,2024-03-10,1,1299.99
+C003,P004,O006,2024-03-10,1,399.99
+C004,P002,O007,2024-03-15,1,29.99
+C004,P006,O008,2024-03-15,1,79.99
+C005,P005,O009,2024-03-20,1,129.99
+C005,P003,O010,2024-03-20,2,99.98
+"""
+        (project_dir / "data" / "purchased.csv").write_text(purchased_csv)
+        
+        # Create data loading script
+        load_script = f"""#!/usr/bin/env python3
+\"\"\"
+Load sample data from CSV files into Neo4j.
+
+This script demonstrates how to use LOAD CSV to import data
+that matches the grai.build schema definitions.
+\"\"\"
+
+from pathlib import Path
+from grai.core.loader.neo4j_loader import (
+    connect_neo4j,
+    execute_cypher,
+    close_connection,
+)
+
+# Connection details (update these for your Neo4j instance)
+URI = "bolt://localhost:7687"
+USER = "neo4j"
+PASSWORD = "graipassword"  # Change this!
+
+# Get the project directory (where this script is located)
+PROJECT_DIR = Path(__file__).parent.absolute()
+DATA_DIR = PROJECT_DIR / "data"
+
+
+def load_customers(driver):
+    \\\"\\\"\\\"Load customers from CSV.\\\"\\\"\\\"
+    csv_path = DATA_DIR / "customers.csv"
+    
+    cypher = f\\\"\\\"\\\"
+    LOAD CSV WITH HEADERS FROM 'file:///{{csv_path}}' AS row
+    MERGE (c:customer {{{{customer_id: row.customer_id}}}})
+    SET c.name = row.name,
+        c.email = row.email,
+        c.created_at = datetime(row.created_at)
+    \\\"\\\"\\\"
+    
+    result = execute_cypher(driver, cypher)
+    return result
+
+
+def load_products(driver):
+    \\\"\\\"\\\"Load products from CSV.\\\"\\\"\\\"
+    csv_path = DATA_DIR / "products.csv"
+    
+    cypher = f\\\"\\\"\\\"
+    LOAD CSV WITH HEADERS FROM 'file:///{{csv_path}}' AS row
+    MERGE (p:product {{{{product_id: row.product_id}}}})
+    SET p.name = row.name,
+        p.category = row.category,
+        p.price = toFloat(row.price)
+    \\\"\\\"\\\"
+    
+    result = execute_cypher(driver, cypher)
+    return result
+
+
+def load_purchases(driver):
+    \\\"\\\"\\\"Load purchase relationships from CSV.\\\"\\\"\\\"
+    csv_path = DATA_DIR / "purchased.csv"
+    
+    cypher = f\\\"\\\"\\\"
+    LOAD CSV WITH HEADERS FROM 'file:///{{csv_path}}' AS row
+    MATCH (c:customer {{{{customer_id: row.customer_id}}}})
+    MATCH (p:product {{{{product_id: row.product_id}}}})
+    MERGE (c)-[r:PURCHASED]->(p)
+    SET r.order_id = row.order_id,
+        r.order_date = date(row.order_date),
+        r.quantity = toInteger(row.quantity),
+        r.total_amount = toFloat(row.total_amount)
+    \\\"\\\"\\\"
+    
+    result = execute_cypher(driver, cypher)
+    return result
+
+
+def main():
+    \"\"\"Main function to load all data.\"\"\"
+    print("\\n📦 Loading sample data from CSV files...\\n")
+    
+    try:
+        # Connect to Neo4j
+        print(f"🔌 Connecting to {{{{URI}}}}...")
+        driver = connect_neo4j(uri=URI, user=USER, password=PASSWORD)
+        print("✅ Connected successfully!\\\\n")
+        
+        # Load customers
+        print("📊 Loading customers...")
+        result = load_customers(driver)
+        if result.success:
+            print(f"   ✅ Loaded customers successfully")
+        else:
+            print(f"   ❌ Error loading customers:")
+            for error in result.errors:
+                print(f"      {{{{error}}}}")
+        
+        # Load products
+        print("📊 Loading products...")
+        result = load_products(driver)
+        if result.success:
+            print(f"   ✅ Loaded products successfully")
+        else:
+            print(f"   ❌ Error loading products:")
+            for error in result.errors:
+                print(f"      {{{{error}}}}")
+        
+        # Load purchases
+        print("📊 Loading purchases...")
+        result = load_purchases(driver)
+        if result.success:
+            print(f"   ✅ Loaded purchases successfully")
+        else:
+            print(f"   ❌ Error loading purchases:")
+            for error in result.errors:
+                print(f"      {{{{error}}}}")
+        
+        # Close connection
+        close_connection(driver)
+        
+        print("\\\\n✅ Data loading complete!\\\\n")
+        print("🌐 Open Neo4j Browser (http://localhost:7474) to explore your graph\\\\n")
+        
+    except Exception as e:
+        print(f"\\\\n❌ Error: {{{{e}}}}\\\\n")
+        import traceback
+        traceback.print_exc()
+
+
+if __name__ == "__main__":
+    main()
+"""
+        (project_dir / "load_data.py").write_text(load_script)
+        
         # Create README
         readme = f"""# {name}
 
@@ -232,44 +405,75 @@ A knowledge graph project built with [grai.build](https://github.com/grai-build/
 │   └── product.yml
 ├── relations/         # Relation definitions
 │   └── purchased.yml
-└── target/           # Compiled output
+├── data/              # Sample CSV data
+│   ├── customers.csv
+│   ├── products.csv
+│   └── purchased.csv
+├── load_data.py       # Script to load CSV data
+└── target/            # Compiled output
     └── neo4j/
         └── compiled.cypher
 ```
 
 ## Getting Started
 
-### Validate your project
+### 1. Validate your project
 
 ```bash
 grai validate
 ```
 
-### Compile to Cypher
-
-```bash
-grai build
-```
-
-### View compiled output
-
-```bash
-cat target/neo4j/compiled.cypher
-```
-
-### Execute against Neo4j
+### 2. Create the schema in Neo4j
 
 ```bash
 grai run --uri bolt://localhost:7687 --user neo4j --password password
+```
+
+This creates constraints and indexes but no data yet.
+
+### 3. Load sample data from CSV files
+
+```bash
+# Edit connection details in load_data.py first!
+python load_data.py
+```
+
+This loads:
+- 5 sample customers
+- 6 sample products  
+- 10 sample purchase orders
+
+### 4. Explore your graph
+
+Open Neo4j Browser at http://localhost:7474 and run:
+
+```cypher
+// View the entire graph
+MATCH (n)-[r]->(m)
+RETURN n, r, m
+LIMIT 50
+
+// Count nodes
+MATCH (n)
+RETURN labels(n) AS type, count(n) AS count
+
+// Find high-value customers
+MATCH (c:customer)-[p:PURCHASED]->()
+WITH c, sum(p.total_amount) AS total_spent
+WHERE total_spent > 1000
+RETURN c.name, c.email, total_spent
+ORDER BY total_spent DESC
 ```
 
 ## Next Steps
 
 1. Edit entity definitions in `entities/`
 2. Edit relation definitions in `relations/`
-3. Run `grai validate` to check for errors
-4. Run `grai build` to compile to Cypher
-5. Run `grai run --execute` to load into Neo4j
+3. Modify CSV files in `data/` with your own data
+4. Run `grai validate` to check for errors
+5. Run `grai build` to compile to Cypher
+6. Run `grai run` to update schema
+7. Run `python load_data.py` to load your data
 
 ## Learn More
 
@@ -283,6 +487,10 @@ grai run --uri bolt://localhost:7687 --user neo4j --password password
         console.print(f"[green]✓[/green] Created [cyan]entities/customer.yml[/cyan]")
         console.print(f"[green]✓[/green] Created [cyan]entities/product.yml[/cyan]")
         console.print(f"[green]✓[/green] Created [cyan]relations/purchased.yml[/cyan]")
+        console.print(f"[green]✓[/green] Created [cyan]data/customers.csv[/cyan] (5 sample customers)")
+        console.print(f"[green]✓[/green] Created [cyan]data/products.csv[/cyan] (6 sample products)")
+        console.print(f"[green]✓[/green] Created [cyan]data/purchased.csv[/cyan] (10 sample orders)")
+        console.print(f"[green]✓[/green] Created [cyan]load_data.py[/cyan] (data loading script)")
         console.print(f"[green]✓[/green] Created [cyan]README.md[/cyan]")
         
         console.print(f"\n[bold green]✓ Successfully initialized project: {name}[/bold green]\n")

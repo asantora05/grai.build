@@ -17,7 +17,48 @@ Complete guide for using grai.build from any directory as a real user.
 First, make sure grai is installed and working:
 
 ```bash
-# Check if grai is installed
+# Check if ## 📊 Step 8: Load Sample Data
+
+Good news! `grai init` already created sample CSV files and a loading script for you.
+
+### Quick Load (Recommended)
+
+The easiest way to load data is using the provided script:
+
+```bash
+# Edit the password in load_data.py first
+vim load_data.py  # Change PASSWORD = "graipassword" to your password
+
+# Run the loader
+python load_data.py
+```
+
+**Expected output:**
+
+```
+📦 Loading sample data from CSV files...
+
+🔌 Connecting to bolt://localhost:7687...
+✅ Connected successfully!
+
+📊 Loading customers...
+   ✅ Loaded customers successfully
+📊 Loading products...
+   ✅ Loaded products successfully
+📊 Loading purchases...
+   ✅ Loaded purchases successfully
+
+✅ Data loading complete!
+
+🌐 Open Neo4j Browser (http://localhost:7474) to explore your graph
+```
+
+### Manual Load (Alternative)
+
+If you prefer to create your own loading script:
+
+```bash
+cat > my_loader.py << 'EOF's installed
 which grai
 
 # Check version
@@ -77,8 +118,20 @@ This creates files in the current directory:
 │   └── product.yml
 ├── relations/
 │   └── purchased.yml
-└── README.md
+├── data/                  # NEW: Sample CSV files!
+│   ├── customers.csv     # 5 sample customers
+│   ├── products.csv      # 6 sample products
+│   └── purchased.csv     # 10 sample orders
+├── load_data.py          # NEW: Data loading script
+├── README.md
+└── target/
 ```
+
+**What's included:**
+- ✅ Entity and relation YAML definitions
+- ✅ Sample CSV files with realistic data
+- ✅ Ready-to-use Python script for loading data
+- ✅ Documentation and examples
 
 **Alternative usage:**
 
