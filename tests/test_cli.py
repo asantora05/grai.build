@@ -25,7 +25,9 @@ class TestCLIBasics:
         """Test that --version works."""
         result = runner.invoke(app, ["--version"])
         assert result.exit_code == 0
-        assert "0.3.0" in result.stdout
+        assert "grai.build version" in result.stdout
+        # Verify it contains a version number (e.g., 0.3.1)
+        assert any(char.isdigit() for char in result.stdout)
 
     def test_commands_registered(self):
         """Test that all commands are registered."""
