@@ -1,8 +1,5 @@
 """Tests for the Cypher compiler."""
 
-import tempfile
-from pathlib import Path
-
 import pytest
 
 from grai.core.compiler import (

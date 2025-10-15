@@ -6,11 +6,11 @@ including entities, relations, properties, constraints, and metadata.
 """
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from datetime import datetime, UTC
+from typing import Any, Dict, Optional
 
-from grai.core.models import Project, Entity, Relation, Property
+from grai.core.models import Entity, Project, Property, Relation
 
 
 def export_to_ir(project: Project) -> Dict[str, Any]:

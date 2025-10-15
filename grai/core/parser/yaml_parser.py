@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Union
 import yaml
 from pydantic import ValidationError
 
-from grai.core.models import Entity, Property, Project, Relation, RelationMapping
+from grai.core.models import Entity, Project, Property, Relation, RelationMapping
 
 
 class ParserError(Exception):

@@ -5,7 +5,7 @@ This module provides functions to validate that entity and relation definitions
 are consistent, that all references exist, and that key mappings are valid.
 """
 
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 from grai.core.models import Entity, Project, Relation
 

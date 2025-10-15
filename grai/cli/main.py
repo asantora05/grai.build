@@ -13,30 +13,28 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from grai.core.cache import (
+    clear_cache,
+    load_cache,
+    should_rebuild,
+    update_cache,
+)
+from grai.core.compiler import compile_and_write, compile_schema_only
+from grai.core.lineage import (
+    build_lineage_graph,
+    calculate_impact_analysis,
+    get_entity_lineage,
+    get_lineage_statistics,
+    get_relation_lineage,
+    visualize_lineage_graphviz,
+    visualize_lineage_mermaid,
+)
 from grai.core.models import Project
 from grai.core.parser import load_project
 from grai.core.validator import validate_project
-from grai.core.compiler import compile_and_write, compile_schema_only
-from grai.core.cache import (
-    should_rebuild,
-    update_cache,
-    load_cache,
-    clear_cache,
-    get_changed_files,
-)
-from grai.core.lineage import (
-    build_lineage_graph,
-    get_entity_lineage,
-    get_relation_lineage,
-    calculate_impact_analysis,
-    get_lineage_statistics,
-    export_lineage_to_dict,
-    visualize_lineage_mermaid,
-    visualize_lineage_graphviz,
-)
 from grai.core.visualizer import (
-    generate_d3_visualization,
     generate_cytoscape_visualization,
+    generate_d3_visualization,
 )
 
 # Initialize Typer app
@@ -120,7 +118,7 @@ def init(
     # Check if grai.yml already exists (not the directory itself)
     grai_yml_path = project_dir / "grai.yml"
     if grai_yml_path.exists() and not force:
-        console.print(f"[red]✗ Project already initialized (grai.yml exists)[/red]")
+        console.print("[red]✗ Project already initialized (grai.yml exists)[/red]")
         console.print("[yellow]Use --force to overwrite existing files[/yellow]")
         raise typer.Exit(code=1)
 
@@ -266,7 +264,7 @@ C005,P003,O010,2024-03-20,2,99.98
         load_cypher = f"""// ============================================
 // Load Sample Data from CSV Files
 // ============================================
-// 
+//
 // This script loads sample data into Neo4j using LOAD CSV.
 // Make sure you've already created the schema with: grai run
 //
@@ -287,7 +285,7 @@ SET c.name = row.name,
     c.email = row.email,
     c.created_at = datetime(row.created_at);
 
-// Load Products  
+// Load Products
 LOAD CSV WITH HEADERS FROM '{file_url_prefix}/products.csv' AS row
 MERGE (p:product {{product_id: row.product_id}})
 SET p.name = row.name,
@@ -375,7 +373,7 @@ python load_data.py
 
 This loads:
 - 5 sample customers
-- 6 sample products  
+- 6 sample products
 - 10 sample purchase orders
 
 ### 4. Explore your graph
@@ -421,23 +419,19 @@ ORDER BY total_spent DESC
         (project_dir / "README.md").write_text(readme)
 
         console.print("[green]✓[/green] Created project structure")
-        console.print(f"[green]✓[/green] Created [cyan]grai.yml[/cyan]")
-        console.print(f"[green]✓[/green] Created [cyan]entities/customer.yml[/cyan]")
-        console.print(f"[green]✓[/green] Created [cyan]entities/product.yml[/cyan]")
-        console.print(f"[green]✓[/green] Created [cyan]relations/purchased.yml[/cyan]")
+        console.print("[green]✓[/green] Created [cyan]grai.yml[/cyan]")
+        console.print("[green]✓[/green] Created [cyan]entities/customer.yml[/cyan]")
+        console.print("[green]✓[/green] Created [cyan]entities/product.yml[/cyan]")
+        console.print("[green]✓[/green] Created [cyan]relations/purchased.yml[/cyan]")
         console.print(
-            f"[green]✓[/green] Created [cyan]data/customers.csv[/cyan] (5 sample customers)"
+            "[green]✓[/green] Created [cyan]data/customers.csv[/cyan] (5 sample customers)"
         )
+        console.print("[green]✓[/green] Created [cyan]data/products.csv[/cyan] (6 sample products)")
+        console.print("[green]✓[/green] Created [cyan]data/purchased.csv[/cyan] (10 sample orders)")
         console.print(
-            f"[green]✓[/green] Created [cyan]data/products.csv[/cyan] (6 sample products)"
+            "[green]✓[/green] Created [cyan]load_data.cypher[/cyan] (data loading script)"
         )
-        console.print(
-            f"[green]✓[/green] Created [cyan]data/purchased.csv[/cyan] (10 sample orders)"
-        )
-        console.print(
-            f"[green]✓[/green] Created [cyan]load_data.cypher[/cyan] (data loading script)"
-        )
-        console.print(f"[green]✓[/green] Created [cyan]README.md[/cyan]")
+        console.print("[green]✓[/green] Created [cyan]README.md[/cyan]")
 
         console.print(f"\n[bold green]✓ Successfully initialized project: {name}[/bold green]\n")
 
@@ -445,15 +439,15 @@ ORDER BY total_spent DESC
         next_steps = "[bold]Next Steps:[/bold]\n\n"
         if project_dir != Path(".").resolve():
             next_steps += f"1. cd {project_dir}\n"
-            next_steps += f"2. grai validate   # Check your definitions\n"
-            next_steps += f"3. grai build      # Compile to Cypher\n"
-            next_steps += f"4. grai run        # Create schema in Neo4j\n"
-            next_steps += f"5. Copy/paste load_data.cypher in Neo4j Browser to load data"
+            next_steps += "2. grai validate   # Check your definitions\n"
+            next_steps += "3. grai build      # Compile to Cypher\n"
+            next_steps += "4. grai run        # Create schema in Neo4j\n"
+            next_steps += "5. Copy/paste load_data.cypher in Neo4j Browser to load data"
         else:
-            next_steps += f"1. grai validate   # Check your definitions\n"
-            next_steps += f"2. grai build      # Compile to Cypher\n"
-            next_steps += f"3. grai run        # Create schema in Neo4j\n"
-            next_steps += f"4. Copy/paste load_data.cypher in Neo4j Browser to load data"
+            next_steps += "1. grai validate   # Check your definitions\n"
+            next_steps += "2. grai build      # Compile to Cypher\n"
+            next_steps += "3. grai run        # Create schema in Neo4j\n"
+            next_steps += "4. Copy/paste load_data.cypher in Neo4j Browser to load data"
 
         panel = Panel(
             next_steps,
@@ -495,7 +489,7 @@ def validate(
     - Duplicate property names
     - Circular dependencies
     """
-    console.print(f"\n[bold cyan]🔍 Validating project...[/bold cyan]\n")
+    console.print("\n[bold cyan]🔍 Validating project...[/bold cyan]\n")
 
     try:
         # Load project
@@ -602,7 +596,7 @@ def build(
 
     Supports incremental builds by tracking file changes.
     """
-    console.print(f"\n[bold cyan]🔨 Building project...[/bold cyan]\n")
+    console.print("\n[bold cyan]🔨 Building project...[/bold cyan]\n")
 
     try:
         # Check for incremental build
@@ -675,7 +669,7 @@ def build(
         else:
             output_path = compile_and_write(project, output_dir=output_dir, filename=filename)
 
-        console.print(f"[green]✓[/green] Compiled successfully")
+        console.print("[green]✓[/green] Compiled successfully")
         console.print(f"[green]✓[/green] Wrote output to: [cyan]{output_path}[/cyan]")
 
         # Update cache
@@ -685,7 +679,7 @@ def build(
             console.print("[green]✓[/green] Cache updated")
 
         # Show summary
-        console.print(f"\n[bold green]✓ Build complete![/bold green]\n")
+        console.print("\n[bold green]✓ Build complete![/bold green]\n")
 
         if verbose:
             # Count constraints and statements
@@ -724,6 +718,7 @@ def _load_csv_data(driver, project_dir: Path, database: str, verbose: bool = Fal
     Returns True if data was loaded successfully, False otherwise.
     """
     import csv
+
     from grai.core.loader import execute_cypher
 
     data_dir = project_dir / "data"
@@ -785,7 +780,7 @@ def _load_csv_data(driver, project_dir: Path, database: str, verbose: bool = Fal
                     if result.success:
                         total_records += result.records_affected
 
-        console.print(f"[green]✓[/green] CSV data loaded successfully")
+        console.print("[green]✓[/green] CSV data loaded successfully")
         console.print(f"  Records affected: {total_records}")
         return True
 
@@ -897,14 +892,14 @@ def run(
     generated Cypher statements against a Neo4j database.
     """
     from grai.core.loader import (
+        close_connection,
         connect_neo4j,
         execute_cypher_file,
-        verify_connection,
-        close_connection,
         get_database_info,
+        verify_connection,
     )
 
-    console.print(f"\n[bold cyan]🚀 Running project against Neo4j...[/bold cyan]\n")
+    console.print("\n[bold cyan]🚀 Running project against Neo4j...[/bold cyan]\n")
 
     driver = None
 
@@ -934,7 +929,7 @@ def run(
         # Show dry run info
         if dry_run:
             console.print("[yellow]🔍 Dry run mode - showing what would be executed[/yellow]\n")
-            console.print(f"[cyan]Connection:[/cyan]")
+            console.print("[cyan]Connection:[/cyan]")
             console.print(f"  URI: {uri}")
             console.print(f"  User: {user}")
             console.print(f"  Database: {database}")
@@ -950,7 +945,7 @@ def run(
             if len(cypher_content.split("\n")) > 20:
                 console.print("  ...")
 
-            console.print(f"\n[yellow]ℹ️  Run without --dry-run to execute[/yellow]")
+            console.print("\n[yellow]ℹ️  Run without --dry-run to execute[/yellow]")
             return
 
         # Connect to Neo4j
@@ -1000,7 +995,7 @@ def run(
 
             # Load CSV data if requested
             if load_csv:
-                console.print(f"\n[cyan]→[/cyan] Loading CSV data...")
+                console.print("\n[cyan]→[/cyan] Loading CSV data...")
                 csv_result = _load_csv_data(driver, project_dir, database, verbose)
 
                 if not csv_result:
@@ -1016,7 +1011,7 @@ def run(
                 console.print(f"  Relationships: {info.get('relationship_count', 0)}")
                 console.print(f"  Labels: {', '.join(info.get('labels', []))}")
 
-            console.print(f"\n[bold green]✓ Successfully loaded data into Neo4j![/bold green]\n")
+            console.print("\n[bold green]✓ Successfully loaded data into Neo4j![/bold green]\n")
         else:
             console.print("[bold red]✗ Execution failed![/bold red]\n")
 
@@ -1075,9 +1070,9 @@ def export(
     Generates a JSON representation of the complete graph structure
     including entities, relations, properties, and metadata.
     """
-    from grai.core.exporter import export_to_json, write_ir_file
+    from grai.core.exporter import write_ir_file
 
-    console.print(f"\n[bold cyan]📤 Exporting project to Graph IR...[/bold cyan]\n")
+    console.print("\n[bold cyan]📤 Exporting project to Graph IR...[/bold cyan]\n")
 
     try:
         # Load project
@@ -1106,8 +1101,8 @@ def export(
         ir = export_to_ir(project)
         stats = ir["statistics"]
 
-        console.print(f"[green]✓[/green] Export complete!")
-        console.print(f"\n[cyan]Statistics:[/cyan]")
+        console.print("[green]✓[/green] Export complete!")
+        console.print("\n[cyan]Statistics:[/cyan]")
         console.print(f"  Entities: {stats['entity_count']}")
         console.print(f"  Relations: {stats['relation_count']}")
         console.print(f"  Total Properties: {stats['total_properties']}")
@@ -1134,7 +1129,7 @@ def info(
     """
     Show project information and statistics.
     """
-    console.print(f"\n[bold cyan]📊 Project Information[/bold cyan]\n")
+    console.print("\n[bold cyan]📊 Project Information[/bold cyan]\n")
 
     try:
         # Load project
@@ -1231,7 +1226,7 @@ def cache(
 
     View cache information or clear cached build data.
     """
-    console.print(f"\n[bold cyan]💾 Build Cache Management[/bold cyan]\n")
+    console.print("\n[bold cyan]💾 Build Cache Management[/bold cyan]\n")
 
     try:
         if clear:
@@ -1280,7 +1275,7 @@ def cache(
 
                     dt = datetime.fromisoformat(entry.last_modified.replace("Z", "+00:00"))
                     time_str = dt.strftime("%Y-%m-%d %H:%M")
-                except:
+                except Exception:  # noqa: BLE001
                     time_str = entry.last_modified[:16]
 
                 table.add_row(path, short_hash, size_str, time_str)
@@ -1368,7 +1363,7 @@ def lineage(
 
     Track entity relationships, calculate impact, and visualize dependencies.
     """
-    console.print(f"\n[bold cyan]🔍 Lineage Analysis[/bold cyan]\n")
+    console.print("\n[bold cyan]🔍 Lineage Analysis[/bold cyan]\n")
 
     try:
         # Load project
@@ -1581,7 +1576,7 @@ def visualize(
     Creates an interactive web-based visualization using D3.js or Cytoscape.js.
     The resulting HTML file can be opened in any modern web browser.
     """
-    console.print(f"\n[bold cyan]🎨 Generating Interactive Visualization[/bold cyan]\n")
+    console.print("\n[bold cyan]🎨 Generating Interactive Visualization[/bold cyan]\n")
 
     try:
         # Load project
@@ -1623,7 +1618,7 @@ def visualize(
         if open_browser:
             import webbrowser
 
-            console.print(f"[cyan]→[/cyan] Opening in browser...")
+            console.print("[cyan]→[/cyan] Opening in browser...")
             webbrowser.open(f"file://{output.absolute()}")
 
     except FileNotFoundError as e:
@@ -1681,14 +1676,13 @@ def docs(
         grai docs --serve --port 3000  # Serve on custom port
         grai docs --output ./my-docs   # Custom output directory
     """
-    from grai.core.exporter import export_to_json
-    import json
-    import webbrowser
     import http.server
     import socketserver
-    import threading
+    import webbrowser
 
-    console.print(f"\n[bold cyan]📚 Generating Knowledge Graph Documentation[/bold cyan]\n")
+    from grai.core.exporter import export_to_json
+
+    console.print("\n[bold cyan]📚 Generating Knowledge Graph Documentation[/bold cyan]\n")
 
     try:
         # Load project
@@ -1701,29 +1695,29 @@ def docs(
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Export project data as JSON
-        console.print(f"\n[cyan]→[/cyan] Exporting project data...")
+        console.print("\n[cyan]→[/cyan] Exporting project data...")
         ir_data = export_to_json(project, pretty=False)
 
         # Generate main documentation HTML
-        console.print(f"[cyan]→[/cyan] Generating documentation pages...")
+        console.print("[cyan]→[/cyan] Generating documentation pages...")
 
         # Create index.html
         index_html = _generate_docs_index_html(project, ir_data)
         index_path = output_dir / "index.html"
         index_path.write_text(index_html)
-        console.print(f"[green]✓[/green] Created index.html")
+        console.print("[green]✓[/green] Created index.html")
 
         # Create entity catalog page
         entities_html = _generate_entity_catalog_html(project)
         entities_path = output_dir / "entities.html"
         entities_path.write_text(entities_html)
-        console.print(f"[green]✓[/green] Created entities.html")
+        console.print("[green]✓[/green] Created entities.html")
 
         # Create relation catalog page
         relations_html = _generate_relation_catalog_html(project)
         relations_path = output_dir / "relations.html"
         relations_path.write_text(relations_html)
-        console.print(f"[green]✓[/green] Created relations.html")
+        console.print("[green]✓[/green] Created relations.html")
 
         # Create graph visualization page
         from grai.core.visualizer import generate_d3_visualization
@@ -1736,7 +1730,7 @@ def docs(
             width=1400,
             height=900,
         )
-        console.print(f"[green]✓[/green] Created graph.html")
+        console.print("[green]✓[/green] Created graph.html")
 
         # Create lineage page
         from grai.core.lineage import build_lineage_graph, visualize_lineage_mermaid
@@ -1746,7 +1740,7 @@ def docs(
         lineage_html = _generate_lineage_html(project, mermaid_diagram)
         lineage_path = output_dir / "lineage.html"
         lineage_path.write_text(lineage_html)
-        console.print(f"[green]✓[/green] Created lineage.html")
+        console.print("[green]✓[/green] Created lineage.html")
 
         console.print(
             f"\n[green]✓[/green] Documentation generated in: [cyan]{output_dir.absolute()}[/cyan]"
@@ -1754,7 +1748,7 @@ def docs(
 
         # Serve documentation if requested
         if serve:
-            console.print(f"\n[bold cyan]🌐 Starting documentation server...[/bold cyan]\n")
+            console.print("\n[bold cyan]🌐 Starting documentation server...[/bold cyan]\n")
 
             # Change to docs directory
             import os
@@ -1762,25 +1756,25 @@ def docs(
             os.chdir(output_dir.absolute())
 
             # Create server
-            Handler = http.server.SimpleHTTPRequestHandler
+            handler = http.server.SimpleHTTPRequestHandler  # noqa: N806
 
             try:
-                with socketserver.TCPServer(("", port), Handler) as httpd:
+                with socketserver.TCPServer(("", port), handler) as httpd:
                     console.print(
                         f"[green]✓[/green] Server running at: [cyan]http://localhost:{port}[/cyan]"
                     )
-                    console.print(f"[dim]Press Ctrl+C to stop[/dim]\n")
+                    console.print("[dim]Press Ctrl+C to stop[/dim]\n")
 
                     # Open browser
                     if open_browser:
-                        console.print(f"[cyan]→[/cyan] Opening in browser...")
+                        console.print("[cyan]→[/cyan] Opening in browser...")
                         webbrowser.open(f"http://localhost:{port}")
 
                     # Serve forever
                     httpd.serve_forever()
 
             except KeyboardInterrupt:
-                console.print(f"\n\n[yellow]Stopping server...[/yellow]")
+                console.print("\n\n[yellow]Stopping server...[/yellow]")
             except OSError as e:
                 if "Address already in use" in str(e):
                     console.print(f"[red]✗ Port {port} is already in use[/red]")
@@ -1790,9 +1784,9 @@ def docs(
                 else:
                     raise
         else:
-            console.print(f"\n[bold]💡 To view documentation:[/bold]")
+            console.print("\n[bold]💡 To view documentation:[/bold]")
             console.print(f"   Open: [cyan]file://{index_path.absolute()}[/cyan]")
-            console.print(f"   Or run: [cyan]grai docs --serve[/cyan]")
+            console.print("   Or run: [cyan]grai docs --serve[/cyan]")
 
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
@@ -1820,31 +1814,31 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
             padding: 0;
             box-sizing: border-box;
         }}
-        
+
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
             color: #333;
             background: #f5f5f5;
         }}
-        
+
         .header {{
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 2rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }}
-        
+
         .header h1 {{
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
         }}
-        
+
         .header p {{
             opacity: 0.9;
             font-size: 1.1rem;
         }}
-        
+
         nav {{
             background: white;
             padding: 1rem 2rem;
@@ -1853,7 +1847,7 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
             top: 0;
             z-index: 100;
         }}
-        
+
         nav a {{
             color: #667eea;
             text-decoration: none;
@@ -1861,24 +1855,24 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
             font-weight: 500;
             transition: color 0.2s;
         }}
-        
+
         nav a:hover {{
             color: #764ba2;
         }}
-        
+
         .container {{
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }}
-        
+
         .card-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin: 2rem 0;
         }}
-        
+
         .card {{
             background: white;
             border-radius: 8px;
@@ -1886,36 +1880,36 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: transform 0.2s, box-shadow 0.2s;
         }}
-        
+
         .card:hover {{
             transform: translateY(-4px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }}
-        
+
         .card h3 {{
             color: #667eea;
             margin-bottom: 0.5rem;
             font-size: 1.3rem;
         }}
-        
+
         .card p {{
             color: #666;
             margin-bottom: 1rem;
         }}
-        
+
         .card a {{
             color: #667eea;
             text-decoration: none;
             font-weight: 500;
         }}
-        
+
         .stats {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin: 2rem 0;
         }}
-        
+
         .stat {{
             background: white;
             padding: 1.5rem;
@@ -1923,18 +1917,18 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }}
-        
+
         .stat-value {{
             font-size: 2.5rem;
             font-weight: bold;
             color: #667eea;
         }}
-        
+
         .stat-label {{
             color: #666;
             margin-top: 0.5rem;
         }}
-        
+
         footer {{
             text-align: center;
             padding: 2rem;
@@ -1949,7 +1943,7 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
         <p>{project.description if hasattr(project, 'description') and project.description else 'Knowledge Graph Documentation'}</p>
         <p style="opacity: 0.7; font-size: 0.9rem; margin-top: 0.5rem;">Version {project.version}</p>
     </div>
-    
+
     <nav>
         <a href="index.html">Home</a>
         <a href="entities.html">Entities</a>
@@ -1957,10 +1951,10 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
         <a href="graph.html">Graph Visualization</a>
         <a href="lineage.html">Lineage</a>
     </nav>
-    
+
     <div class="container">
         <h2>Project Overview</h2>
-        
+
         <div class="stats">
             <div class="stat">
                 <div class="stat-value">{len(project.entities)}</div>
@@ -1979,28 +1973,28 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
                 <div class="stat-label">Relation Properties</div>
             </div>
         </div>
-        
+
         <h2>Documentation Sections</h2>
-        
+
         <div class="card-grid">
             <div class="card">
                 <h3>📦 Entities</h3>
                 <p>Browse all entities in your knowledge graph, including their properties, keys, and source definitions.</p>
                 <a href="entities.html">View Entities →</a>
             </div>
-            
+
             <div class="card">
                 <h3>🔗 Relations</h3>
                 <p>Explore relationships between entities, their mappings, and additional properties.</p>
                 <a href="relations.html">View Relations →</a>
             </div>
-            
+
             <div class="card">
                 <h3>🕸️ Graph Visualization</h3>
                 <p>Interactive visualization of your entire knowledge graph showing entities and their connections.</p>
                 <a href="graph.html">View Graph →</a>
             </div>
-            
+
             <div class="card">
                 <h3>🔄 Lineage</h3>
                 <p>Visualize data lineage and dependencies between entities, relations, and source systems.</p>
@@ -2008,7 +2002,7 @@ def _generate_docs_index_html(project: Project, ir_data: str) -> str:
             </div>
         </div>
     </div>
-    
+
     <footer>
         <p>Generated by <strong>grai.build</strong> - Declarative Knowledge Graph Modeling</p>
     </footer>
@@ -2148,7 +2142,7 @@ def _generate_entity_catalog_html(project: Project) -> str:
         <h1>📦 Entities</h1>
         <p>{project.name} - Entity Catalog</p>
     </div>
-    
+
     <nav>
         <a href="index.html">Home</a>
         <a href="entities.html">Entities</a>
@@ -2156,7 +2150,7 @@ def _generate_entity_catalog_html(project: Project) -> str:
         <a href="graph.html">Graph Visualization</a>
         <a href="lineage.html">Lineage</a>
     </nav>
-    
+
     <div class="container">
         <p style="margin-bottom: 2rem;">
             This page lists all entities in your knowledge graph. Each entity represents a node type with defined properties and keys.
@@ -2326,7 +2320,7 @@ def _generate_relation_catalog_html(project: Project) -> str:
         <h1>🔗 Relations</h1>
         <p>{project.name} - Relation Catalog</p>
     </div>
-    
+
     <nav>
         <a href="index.html">Home</a>
         <a href="entities.html">Entities</a>
@@ -2334,7 +2328,7 @@ def _generate_relation_catalog_html(project: Project) -> str:
         <a href="graph.html">Graph Visualization</a>
         <a href="lineage.html">Lineage</html>
     </nav>
-    
+
     <div class="container">
         <p style="margin-bottom: 2rem;">
             This page lists all relations in your knowledge graph. Each relation represents an edge type connecting two entity types.
@@ -2406,7 +2400,7 @@ def _generate_lineage_html(project: Project, mermaid_diagram: str) -> str:
         <h1>🔄 Lineage</h1>
         <p>{project.name} - Data Lineage & Dependencies</p>
     </div>
-    
+
     <nav>
         <a href="index.html">Home</a>
         <a href="entities.html">Entities</a>
@@ -2414,12 +2408,12 @@ def _generate_lineage_html(project: Project, mermaid_diagram: str) -> str:
         <a href="graph.html">Graph Visualization</a>
         <a href="lineage.html">Lineage</a>
     </nav>
-    
+
     <div class="container">
         <p style="margin-bottom: 2rem;">
             This diagram shows the data lineage of your knowledge graph, illustrating how source systems flow into entities and how entities connect through relations.
         </p>
-        
+
         <div class="diagram-container">
             <pre class="mermaid">
 {mermaid_diagram}

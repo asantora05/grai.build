@@ -3,11 +3,11 @@ Tests for the visualization module.
 """
 
 import pytest
-from pathlib import Path
-from grai.core.models import Project, Entity, Relation, RelationMapping, Property, PropertyType
+
+from grai.core.models import Entity, Project, Property, PropertyType, Relation, RelationMapping
 from grai.core.visualizer import (
-    generate_d3_visualization,
     generate_cytoscape_visualization,
+    generate_d3_visualization,
 )
 
 
@@ -57,72 +57,72 @@ def sample_project():
 
 class TestGenerateD3Visualization:
     """Tests for D3.js visualization generation."""
-    
+
     def test_generate_d3_basic(self, sample_project, tmp_path):
         """Test generating basic D3 visualization."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_d3_visualization(sample_project, output_path)
-        
+
         assert output_path.exists()
         assert output_path.stat().st_size > 1000  # Should be substantial file
-    
+
     def test_d3_contains_html_structure(self, sample_project, tmp_path):
         """Test D3 visualization contains proper HTML structure."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_d3_visualization(sample_project, output_path)
-        
+
         content = output_path.read_text()
         assert "<!DOCTYPE html>" in content
         assert "<html" in content
         assert "</html>" in content
         assert "d3js.org" in content
-    
+
     def test_d3_contains_project_data(self, sample_project, tmp_path):
         """Test D3 visualization contains project data."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_d3_visualization(sample_project, output_path)
-        
+
         content = output_path.read_text()
         assert "customer" in content
         assert "product" in content
         assert "PURCHASED" in content
-    
+
     def test_d3_with_custom_title(self, sample_project, tmp_path):
         """Test D3 visualization with custom title."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_d3_visualization(sample_project, output_path, title="My Graph")
-        
+
         content = output_path.read_text()
         assert "My Graph" in content
-    
+
     def test_d3_with_custom_dimensions(self, sample_project, tmp_path):
         """Test D3 visualization with custom dimensions."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_d3_visualization(sample_project, output_path, width=800, height=600)
-        
+
         content = output_path.read_text()
         assert 'width="800"' in content or "800" in content
         assert 'height="600"' in content or "600" in content
-    
+
     def test_d3_creates_parent_directories(self, sample_project, tmp_path):
         """Test D3 visualization creates parent directories."""
         output_path = tmp_path / "nested" / "dir" / "graph.html"
-        
+
         generate_d3_visualization(sample_project, output_path)
-        
+
         assert output_path.exists()
-    
+
     def test_d3_contains_statistics(self, sample_project, tmp_path):
         """Test D3 visualization includes project statistics."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_d3_visualization(sample_project, output_path)
-        
+
         content = output_path.read_text()
         assert "nodes" in content
         assert "edges" in content
@@ -131,72 +131,72 @@ class TestGenerateD3Visualization:
 
 class TestGenerateCytoscapeVisualization:
     """Tests for Cytoscape.js visualization generation."""
-    
+
     def test_generate_cytoscape_basic(self, sample_project, tmp_path):
         """Test generating basic Cytoscape visualization."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_cytoscape_visualization(sample_project, output_path)
-        
+
         assert output_path.exists()
         assert output_path.stat().st_size > 1000
-    
+
     def test_cytoscape_contains_html_structure(self, sample_project, tmp_path):
         """Test Cytoscape visualization contains proper HTML structure."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_cytoscape_visualization(sample_project, output_path)
-        
+
         content = output_path.read_text()
         assert "<!DOCTYPE html>" in content
         assert "<html" in content
         assert "</html>" in content
         assert "cytoscape" in content.lower()
-    
+
     def test_cytoscape_contains_project_data(self, sample_project, tmp_path):
         """Test Cytoscape visualization contains project data."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_cytoscape_visualization(sample_project, output_path)
-        
+
         content = output_path.read_text()
         assert "customer" in content
         assert "product" in content
         assert "PURCHASED" in content
-    
+
     def test_cytoscape_with_custom_title(self, sample_project, tmp_path):
         """Test Cytoscape visualization with custom title."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_cytoscape_visualization(sample_project, output_path, title="My Graph")
-        
+
         content = output_path.read_text()
         assert "My Graph" in content
-    
+
     def test_cytoscape_with_custom_dimensions(self, sample_project, tmp_path):
         """Test Cytoscape visualization with custom dimensions."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_cytoscape_visualization(sample_project, output_path, width=800, height=600)
-        
+
         content = output_path.read_text()
         assert "800" in content
         assert "600" in content
-    
+
     def test_cytoscape_creates_parent_directories(self, sample_project, tmp_path):
         """Test Cytoscape visualization creates parent directories."""
         output_path = tmp_path / "nested" / "dir" / "graph.html"
-        
+
         generate_cytoscape_visualization(sample_project, output_path)
-        
+
         assert output_path.exists()
-    
+
     def test_cytoscape_contains_statistics(self, sample_project, tmp_path):
         """Test Cytoscape visualization includes project statistics."""
         output_path = tmp_path / "graph.html"
-        
+
         generate_cytoscape_visualization(sample_project, output_path)
-        
+
         content = output_path.read_text()
         assert "nodes" in content
         assert "edges" in content
@@ -205,20 +205,20 @@ class TestGenerateCytoscapeVisualization:
 
 class TestVisualizationIntegration:
     """Integration tests for visualization module."""
-    
+
     def test_both_formats_work(self, sample_project, tmp_path):
         """Test both D3 and Cytoscape formats work."""
         d3_path = tmp_path / "d3.html"
         cytoscape_path = tmp_path / "cytoscape.html"
-        
+
         generate_d3_visualization(sample_project, d3_path)
         generate_cytoscape_visualization(sample_project, cytoscape_path)
-        
+
         assert d3_path.exists()
         assert cytoscape_path.exists()
         assert d3_path.stat().st_size > 1000
         assert cytoscape_path.stat().st_size > 1000
-    
+
     def test_visualization_with_complex_project(self, tmp_path):
         """Test visualization with more complex project."""
         project = Project(
@@ -245,10 +245,10 @@ class TestVisualizationIntegration:
                 for i in range(4)
             ],
         )
-        
+
         output_path = tmp_path / "complex.html"
         generate_d3_visualization(project, output_path)
-        
+
         assert output_path.exists()
         content = output_path.read_text()
         assert "entity0" in content

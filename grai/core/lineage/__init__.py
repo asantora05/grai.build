@@ -6,21 +6,21 @@ dependencies, and impact analysis.
 """
 
 from .lineage_tracker import (
+    LineageEdge,
     LineageGraph,
     LineageNode,
-    LineageEdge,
     NodeType,
     build_lineage_graph,
-    get_entity_lineage,
-    get_relation_lineage,
-    find_upstream_entities,
+    calculate_impact_analysis,
+    export_lineage_to_dict,
     find_downstream_entities,
     find_entity_path,
-    calculate_impact_analysis,
+    find_upstream_entities,
+    get_entity_lineage,
     get_lineage_statistics,
-    export_lineage_to_dict,
-    visualize_lineage_mermaid,
+    get_relation_lineage,
     visualize_lineage_graphviz,
+    visualize_lineage_mermaid,
 )
 
 __all__ = [

@@ -10,15 +10,16 @@ This demonstrates:
 """
 
 from pathlib import Path
-from grai.core.parser import load_project
+
 from grai.core.compiler import (
-    compile_entity,
-    compile_relation,
-    compile_project,
     compile_and_write,
+    compile_entity,
+    compile_project,
+    compile_relation,
     compile_schema_only,
     generate_load_csv_statements,
 )
+from grai.core.parser import load_project
 
 
 def main():
@@ -41,7 +42,7 @@ def main():
     print("1. Compiling Individual Entities")
     print("=" * 80)
     print()
-    
+
     for entity in project.entities:
         print(f"Entity: {entity.entity}")
         print("-" * 80)
@@ -54,7 +55,7 @@ def main():
     print("2. Compiling Individual Relations")
     print("=" * 80)
     print()
-    
+
     for relation in project.relations:
         print(f"Relation: {relation.relation}")
         print("-" * 80)
@@ -67,7 +68,7 @@ def main():
     print("3. Compiling Full Project")
     print("=" * 80)
     print()
-    
+
     full_cypher = compile_project(project)
     print(full_cypher[:500] + "..." if len(full_cypher) > 500 else full_cypher)
     print()
@@ -77,7 +78,7 @@ def main():
     print("4. Writing Compiled Output")
     print("=" * 80)
     print()
-    
+
     output_path = compile_and_write(project, output_dir=templates_dir / "target/neo4j")
     print(f"✅ Wrote compiled Cypher to: {output_path}")
     print()
@@ -87,7 +88,7 @@ def main():
     print("5. Generating Schema-Only Script")
     print("=" * 80)
     print()
-    
+
     schema_cypher = compile_schema_only(project)
     print(schema_cypher)
     print()
@@ -97,7 +98,7 @@ def main():
     print("6. Generating LOAD CSV Statements")
     print("=" * 80)
     print()
-    
+
     csv_statements = generate_load_csv_statements(project, data_dir="file:///data")
     for name, statement in csv_statements.items():
         print(f"--- {name} ---")

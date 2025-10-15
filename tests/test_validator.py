@@ -1,7 +1,5 @@
 """Tests for the project validator."""
 
-import pytest
-
 from grai.core.models import Entity, Project, Property, PropertyType, Relation, RelationMapping
 from grai.core.validator import (
     ValidationResult,

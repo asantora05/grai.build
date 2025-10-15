@@ -333,6 +333,6 @@ Warnings (1):
 
 ---
 
-**Status**: ✅ Complete and tested  
-**Coverage**: 91% (190 statements, 17 missed)  
+**Status**: ✅ Complete and tested
+**Coverage**: 91% (190 statements, 17 missed)
 **Tests**: 27 passing

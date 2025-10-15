@@ -5,13 +5,14 @@ Provides HTML-based interactive visualizations using D3.js and other web technol
 """
 
 from pathlib import Path
-from typing import Optional, Dict, List
-from grai.core.models import Project
+from typing import Dict, Optional
+
 from grai.core.lineage import (
     build_lineage_graph,
     export_lineage_to_dict,
     get_lineage_statistics,
 )
+from grai.core.models import Project
 
 
 def generate_d3_visualization(
@@ -279,9 +280,9 @@ def _generate_d3_html(
                 </div>
             </div>
         </div>
-        
+
         <svg id="graph" width="{width}" height="{height}"></svg>
-        
+
         <div class="legend">
             <div class="legend-title">Legend</div>
             <div class="legend-items">
@@ -300,31 +301,31 @@ def _generate_d3_html(
             </div>
         </div>
     </div>
-    
+
     <div class="tooltip" id="tooltip"></div>
-    
+
     <script>
         const nodes = {nodes_json};
         const links = {links_json};
-        
+
         const svg = d3.select("#graph");
         const width = {width};
         const height = {height};
-        
+
         // Create force simulation
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id).distance(100))
             .force("charge", d3.forceManyBody().strength(-300))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collision", d3.forceCollide().radius(40));
-        
+
         // Create links
         const link = svg.append("g")
             .selectAll("line")
             .data(links)
             .join("line")
             .attr("class", "link");
-        
+
         // Create nodes
         const node = svg.append("g")
             .selectAll("circle")
@@ -335,7 +336,7 @@ def _generate_d3_html(
             .call(drag(simulation))
             .on("mouseover", showTooltip)
             .on("mouseout", hideTooltip);
-        
+
         // Create labels
         const label = svg.append("g")
             .selectAll("text")
@@ -344,7 +345,7 @@ def _generate_d3_html(
             .attr("class", "node-label")
             .attr("dy", 30)
             .text(d => d.name);
-        
+
         // Update positions on tick
         simulation.on("tick", () => {{
             link
@@ -352,16 +353,16 @@ def _generate_d3_html(
                 .attr("y1", d => d.source.y)
                 .attr("x2", d => d.target.x)
                 .attr("y2", d => d.target.y);
-            
+
             node
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y);
-            
+
             label
                 .attr("x", d => d.x)
                 .attr("y", d => d.y);
         }});
-        
+
         // Drag functionality
         function drag(simulation) {{
             function dragstarted(event) {{
@@ -369,24 +370,24 @@ def _generate_d3_html(
                 event.subject.fx = event.subject.x;
                 event.subject.fy = event.subject.y;
             }}
-            
+
             function dragged(event) {{
                 event.subject.fx = event.x;
                 event.subject.fy = event.y;
             }}
-            
+
             function dragended(event) {{
                 if (!event.active) simulation.alphaTarget(0);
                 event.subject.fx = null;
                 event.subject.fy = null;
             }}
-            
+
             return d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended);
         }}
-        
+
         // Tooltip functions
         function showTooltip(event, d) {{
             const tooltip = d3.select("#tooltip");
@@ -396,7 +397,7 @@ def _generate_d3_html(
                 .style("top", (event.pageY - 10) + "px")
                 .html(`<strong>${{d.name}}</strong><br>Type: ${{d.type}}`);
         }}
-        
+
         function hideTooltip() {{
             d3.select("#tooltip").style("opacity", 0);
         }}
@@ -545,9 +546,9 @@ def _generate_cytoscape_html(
                 </div>
             </div>
         </div>
-        
+
         <div id="cy"></div>
-        
+
         <div class="legend">
             <div class="legend-title">Legend</div>
             <div class="legend-items">
@@ -566,7 +567,7 @@ def _generate_cytoscape_html(
             </div>
         </div>
     </div>
-    
+
     <script>
         const cy = cytoscape({{
             container: document.getElementById('cy'),
@@ -637,7 +638,7 @@ def _generate_cytoscape_html(
                 minTemp: 1.0
             }}
         }});
-        
+
         // Add click handlers
         cy.on('tap', 'node', function(evt) {{
             const node = evt.target;

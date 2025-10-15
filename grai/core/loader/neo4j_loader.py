@@ -5,14 +5,14 @@ This module provides functionality to connect to Neo4j, execute Cypher queries,
 and manage database operations for grai.build projects.
 """
 
+import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass
-import time
 
 try:
-    from neo4j import GraphDatabase, Driver, Session, Result
-    from neo4j.exceptions import ServiceUnavailable, AuthError, Neo4jError
+    from neo4j import Driver, GraphDatabase, Result, Session
+    from neo4j.exceptions import AuthError, Neo4jError, ServiceUnavailable
 
     NEO4J_AVAILABLE = True
 except ImportError:

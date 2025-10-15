@@ -5,11 +5,11 @@ from pydantic import ValidationError
 
 from grai.core.models import (
     Entity,
+    Project,
     Property,
     PropertyType,
     Relation,
     RelationMapping,
-    Project,
 )
 
 
@@ -134,7 +134,7 @@ class TestRelation:
                 "to": "product",
                 "source": "analytics.orders",
                 "mappings": RelationMapping(from_key="customer_id", to_key="product_id"),
-            }
+            },
         )
         assert relation.from_entity == "customer"
         assert relation.to_entity == "product"

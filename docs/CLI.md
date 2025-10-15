@@ -513,5 +513,5 @@ grai build --output ~/my-graphs
 
 ---
 
-**Version**: 0.1.0  
+**Version**: 0.1.0
 **Last Updated**: January 2025

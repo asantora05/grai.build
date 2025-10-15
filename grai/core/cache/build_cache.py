@@ -7,10 +7,10 @@ by computing file hashes and comparing them against cached values.
 
 import hashlib
 import json
-from dataclasses import dataclass, asdict, field
-from datetime import datetime, UTC
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Optional, Set
 
 
 @dataclass

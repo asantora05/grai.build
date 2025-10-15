@@ -6,11 +6,10 @@ and calculate impact of changes across the knowledge graph.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, Optional, Tuple
 from enum import Enum
-from pathlib import Path
+from typing import Dict, List, Optional, Set
 
-from grai.core.models import Project, Entity, Relation
+from grai.core.models import Project
 
 
 class NodeType(Enum):
@@ -588,7 +587,7 @@ def visualize_lineage_mermaid(graph: LineageGraph, focus_entity: Optional[str] =
 
     # Add node definitions with styling
     for node in nodes_to_show.values():
-        node_label = node.name.replace(" ", "_")
+        node.name.replace(" ", "_")
         if node.type == NodeType.ENTITY:
             lines.append(f'    {node.id.replace(":", "_")}["{node.name}"]')
             lines.append(f'    style {node.id.replace(":", "_")} fill:#e1f5ff,stroke:#0288d1')

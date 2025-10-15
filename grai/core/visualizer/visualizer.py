@@ -5,8 +5,8 @@ Provides functions to generate interactive HTML visualizations using D3.js and C
 """
 
 from grai.core.visualizer import (
-    generate_d3_visualization,
     generate_cytoscape_visualization,
+    generate_d3_visualization,
 )
 
 __all__ = [

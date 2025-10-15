@@ -13,9 +13,9 @@ from grai.core.validator import validate_entity, validate_project, validate_rela
 
 def demo_validator():
     """Demonstrate the validator."""
-    
+
     print("🔍 grai.build Validator Demo\n")
-    
+
     # 1. Validate individual entity
     print("1️⃣ Validating individual entity...")
     customer = Entity(
@@ -29,11 +29,11 @@ def demo_validator():
     )
     result = validate_entity(customer)
     if result:
-        print(f"   ✅ Entity 'customer' is valid")
+        print("   ✅ Entity 'customer' is valid")
     else:
-        print(f"   ❌ Entity 'customer' has errors:")
+        print("   ❌ Entity 'customer' has errors:")
         print(f"      {result}")
-    
+
     # 2. Validate entity with issues
     print("\n2️⃣ Validating entity with missing key property...")
     bad_entity = Entity(
@@ -46,14 +46,14 @@ def demo_validator():
     )
     result = validate_entity(bad_entity)
     if result:
-        print(f"   ✅ Entity 'product' is valid (warnings are OK)")
+        print("   ✅ Entity 'product' is valid (warnings are OK)")
     else:
-        print(f"   ❌ Entity 'product' has errors")
+        print("   ❌ Entity 'product' has errors")
     if result.warnings:
-        print(f"   ⚠️  Warnings:")
+        print("   ⚠️  Warnings:")
         for warning in result.warnings:
             print(f"      • {warning}")
-    
+
     # 3. Validate relation with entity index
     print("\n3️⃣ Validating relation with entity references...")
     product = Entity(
@@ -71,12 +71,12 @@ def demo_validator():
     entity_index = {"customer": customer, "product": product}
     result = validate_relation(purchased, entity_index)
     if result:
-        print(f"   ✅ Relation 'PURCHASED' is valid")
+        print("   ✅ Relation 'PURCHASED' is valid")
     else:
-        print(f"   ❌ Relation 'PURCHASED' has errors:")
+        print("   ❌ Relation 'PURCHASED' has errors:")
         for error in result.errors:
             print(f"      • {error}")
-    
+
     # 4. Validate relation with invalid reference
     print("\n4️⃣ Validating relation with non-existent entity...")
     bad_relation = Relation(
@@ -88,12 +88,12 @@ def demo_validator():
     )
     result = validate_relation(bad_relation, entity_index)
     if result:
-        print(f"   ✅ Relation 'REVIEWED' is valid")
+        print("   ✅ Relation 'REVIEWED' is valid")
     else:
-        print(f"   ❌ Relation 'REVIEWED' has errors:")
+        print("   ❌ Relation 'REVIEWED' has errors:")
         for error in result.errors:
             print(f"      • {error}")
-    
+
     # 5. Validate relation with invalid key mapping
     print("\n5️⃣ Validating relation with invalid key mapping...")
     bad_mapping = Relation(
@@ -105,12 +105,12 @@ def demo_validator():
     )
     result = validate_relation(bad_mapping, entity_index)
     if result:
-        print(f"   ✅ Relation 'FOLLOWS' is valid")
+        print("   ✅ Relation 'FOLLOWS' is valid")
     else:
-        print(f"   ❌ Relation 'FOLLOWS' has errors:")
+        print("   ❌ Relation 'FOLLOWS' has errors:")
         for error in result.errors:
             print(f"      • {error}")
-    
+
     # 6. Validate complete project from templates
     print("\n6️⃣ Validating complete project from templates...")
     templates_dir = Path(__file__).parent / "templates"
@@ -118,35 +118,35 @@ def demo_validator():
         try:
             project = load_project(templates_dir)
             result = validate_project(project, strict=False)
-            
+
             if result:
                 print(f"   ✅ Project '{project.name}' is valid!")
             else:
                 print(f"   ❌ Project '{project.name}' has errors:")
                 for error in result.errors:
                     print(f"      • {error}")
-            
+
             if result.warnings:
-                print(f"   ⚠️  Warnings:")
+                print("   ⚠️  Warnings:")
                 for warning in result.warnings:
                     print(f"      • {warning}")
-            
+
             # Show validation summary
-            print(f"\n   📊 Validation Summary:")
+            print("\n   📊 Validation Summary:")
             print(f"      Entities validated: {len(project.entities)}")
             print(f"      Relations validated: {len(project.relations)}")
             print(f"      Errors found: {len(result.errors)}")
             print(f"      Warnings found: {len(result.warnings)}")
-        
+
         except Exception as e:
             print(f"   ⚠️  Error loading project: {e}")
     else:
         print("   ⚠️  Templates directory not found")
-    
+
     # 7. Test strict mode
     print("\n7️⃣ Testing strict mode (warnings become errors)...")
     from grai.core.models import Project
-    
+
     strict_entity = Entity(
         entity="test",
         source="source.test",
@@ -158,16 +158,20 @@ def demo_validator():
         entities=[strict_entity],
         relations=[],
     )
-    
+
     result_normal = validate_project(strict_project, strict=False)
     result_strict = validate_project(strict_project, strict=True)
-    
-    print(f"   Normal mode: {len(result_normal.errors)} errors, {len(result_normal.warnings)} warnings")
-    print(f"   Strict mode: {len(result_strict.errors)} errors, {len(result_strict.warnings)} warnings")
-    
+
+    print(
+        f"   Normal mode: {len(result_normal.errors)} errors, {len(result_normal.warnings)} warnings"
+    )
+    print(
+        f"   Strict mode: {len(result_strict.errors)} errors, {len(result_strict.warnings)} warnings"
+    )
+
     if result_normal.valid and not result_strict.valid:
-        print(f"   ✅ Strict mode correctly treats warnings as errors")
-    
+        print("   ✅ Strict mode correctly treats warnings as errors")
+
     print("\n✨ Validator demo complete!\n")
     print("📝 The validator successfully:")
     print("   ✅ Validates individual entities and relations")

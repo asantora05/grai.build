@@ -4,9 +4,8 @@ Tests for the CLI module.
 This module tests the Typer-based command-line interface.
 """
 
-import pytest
-from pathlib import Path
 from typer.testing import CliRunner
+
 from grai.cli.main import app
 
 runner = CliRunner()
@@ -46,7 +45,7 @@ class TestInitCommand:
         """Test that init creates a project structure."""
         project_dir = tmp_path / "test-project"
         result = runner.invoke(app, ["init", str(project_dir), "--name", "test-graph"])
-        
+
         assert result.exit_code == 0
         assert project_dir.exists()
         assert (project_dir / "grai.yml").exists()
@@ -57,8 +56,8 @@ class TestInitCommand:
     def test_init_creates_example_files(self, tmp_path):
         """Test that init creates example entity and relation files."""
         project_dir = tmp_path / "test-project"
-        result = runner.invoke(app, ["init", str(project_dir)])
-        
+        runner.invoke(app, ["init", str(project_dir)])
+
         assert (project_dir / "entities" / "customer.yml").exists()
         assert (project_dir / "entities" / "product.yml").exists()
         assert (project_dir / "relations" / "purchased.yml").exists()
@@ -66,8 +65,8 @@ class TestInitCommand:
     def test_init_project_name_in_config(self, tmp_path):
         """Test that project name is set in grai.yml."""
         project_dir = tmp_path / "test-project"
-        result = runner.invoke(app, ["init", str(project_dir), "--name", "my-custom-name"])
-        
+        runner.invoke(app, ["init", str(project_dir), "--name", "my-custom-name"])
+
         grai_yml = (project_dir / "grai.yml").read_text()
         assert "my-custom-name" in grai_yml
 
@@ -76,7 +75,7 @@ class TestInitCommand:
         project_dir = tmp_path / "test-project"
         project_dir.mkdir()
         (project_dir / "grai.yml").write_text("existing project")
-        
+
         result = runner.invoke(app, ["init", str(project_dir)])
         assert result.exit_code == 1
         assert "already initialized" in result.stdout.lower()
@@ -86,10 +85,10 @@ class TestInitCommand:
         project_dir = tmp_path / "test-project"
         project_dir.mkdir()
         (project_dir / "grai.yml").write_text("old content")
-        
+
         result = runner.invoke(app, ["init", str(project_dir), "--force"])
         assert result.exit_code == 0
-        
+
         grai_yml = (project_dir / "grai.yml").read_text()
         assert "old content" not in grai_yml
 
@@ -101,7 +100,7 @@ class TestValidateCommand:
         """Test validating a valid project."""
         # Create a valid project
         runner.invoke(app, ["init", str(tmp_path / "valid-project")])
-        
+
         result = runner.invoke(app, ["validate", str(tmp_path / "valid-project")])
         assert result.exit_code == 0
         assert "✓" in result.stdout or "passed" in result.stdout.lower()
@@ -114,7 +113,7 @@ class TestValidateCommand:
     def test_validate_verbose_output(self, tmp_path):
         """Test validate with --verbose flag."""
         runner.invoke(app, ["init", str(tmp_path / "test-project")])
-        
+
         result = runner.invoke(app, ["validate", str(tmp_path / "test-project"), "--verbose"])
         assert result.exit_code == 0
 
@@ -126,13 +125,13 @@ class TestBuildCommand:
         """Test that build creates compiled output."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["build", str(project_dir)])
         assert result.exit_code == 0
-        
+
         output_file = project_dir / "target" / "neo4j" / "compiled.cypher"
         assert output_file.exists()
-        
+
         content = output_file.read_text()
         # Default is schema-only, so should have constraints and indexes
         assert "CONSTRAINT" in content
@@ -145,10 +144,10 @@ class TestBuildCommand:
         """Test build with custom output directory."""
         project_dir = tmp_path / "test-project"
         output_dir = tmp_path / "custom-output"
-        
+
         runner.invoke(app, ["init", str(project_dir)])
         result = runner.invoke(app, ["build", str(project_dir), "--output", str(output_dir)])
-        
+
         assert result.exit_code == 0
         assert (output_dir / "compiled.cypher").exists()
 
@@ -156,7 +155,7 @@ class TestBuildCommand:
         """Test build with custom filename."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["build", str(project_dir), "--filename", "my-graph.cypher"])
         assert result.exit_code == 0
         assert (project_dir / "target" / "neo4j" / "my-graph.cypher").exists()
@@ -165,10 +164,10 @@ class TestBuildCommand:
         """Test build with --schema-only flag."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["build", str(project_dir), "--schema-only"])
         assert result.exit_code == 0
-        
+
         output = (project_dir / "target" / "neo4j" / "compiled.cypher").read_text()
         assert "CREATE CONSTRAINT" in output or "CREATE INDEX" in output
 
@@ -176,7 +175,7 @@ class TestBuildCommand:
         """Test build with --skip-validation."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["build", str(project_dir), "--skip-validation"])
         assert result.exit_code == 0
 
@@ -184,7 +183,7 @@ class TestBuildCommand:
         """Test build with --verbose flag."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["build", str(project_dir), "--verbose"])
         assert result.exit_code == 0
         assert "Build Summary" in result.stdout or "Entities" in result.stdout
@@ -197,10 +196,10 @@ class TestCompileCommand:
         """Test that compile works as an alias."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["compile", str(project_dir)])
         assert result.exit_code == 0
-        
+
         output_file = project_dir / "target" / "neo4j" / "compiled.cypher"
         assert output_file.exists()
 
@@ -212,7 +211,7 @@ class TestInfoCommand:
         """Test that info shows project information."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir), "--name", "my-test-graph"])
-        
+
         result = runner.invoke(app, ["info", str(project_dir)])
         assert result.exit_code == 0
         assert "my-test-graph" in result.stdout
@@ -223,7 +222,7 @@ class TestInfoCommand:
         """Test that info shows entity table."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["info", str(project_dir)])
         assert "customer" in result.stdout
         assert "product" in result.stdout
@@ -232,7 +231,7 @@ class TestInfoCommand:
         """Test that info shows relation table."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(app, ["info", str(project_dir)])
         assert "PURCHASED" in result.stdout
 
@@ -248,19 +247,19 @@ class TestCLIIntegration:
     def test_full_workflow(self, tmp_path):
         """Test complete workflow: init -> validate -> build -> info."""
         project_dir = tmp_path / "workflow-test"
-        
+
         # Init
         result = runner.invoke(app, ["init", str(project_dir), "--name", "workflow-graph"])
         assert result.exit_code == 0
-        
+
         # Validate
         result = runner.invoke(app, ["validate", str(project_dir)])
         assert result.exit_code == 0
-        
+
         # Build
         result = runner.invoke(app, ["build", str(project_dir)])
         assert result.exit_code == 0
-        
+
         # Info
         result = runner.invoke(app, ["info", str(project_dir)])
         assert result.exit_code == 0
@@ -270,11 +269,11 @@ class TestCLIIntegration:
         """Test that validate followed by build works."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         # Validate first
         result1 = runner.invoke(app, ["validate", str(project_dir)])
         assert result1.exit_code == 0
-        
+
         # Then build
         result2 = runner.invoke(app, ["build", str(project_dir)])
         assert result2.exit_code == 0
@@ -288,18 +287,19 @@ class TestRunCommand:
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
         runner.invoke(app, ["build", str(project_dir)])
-        
+
         result = runner.invoke(
             app,
             [
                 "run",
                 str(project_dir),
                 "--dry-run",
-                "--password", "test",
+                "--password",
+                "test",
                 "--skip-build",
-            ]
+            ],
         )
-        
+
         assert result.exit_code == 0
         assert "Dry run mode" in result.stdout
         assert "bolt://localhost:7687" in result.stdout
@@ -309,17 +309,18 @@ class TestRunCommand:
         """Test run fails when Cypher file doesn't exist."""
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
-        
+
         result = runner.invoke(
             app,
             [
                 "run",
                 str(project_dir),
                 "--skip-build",
-                "--password", "test",
-            ]
+                "--password",
+                "test",
+            ],
         )
-        
+
         assert result.exit_code == 1
         assert "Cypher file not found" in result.stdout
 
@@ -328,10 +329,10 @@ class TestRunCommand:
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
         runner.invoke(app, ["build", str(project_dir)])
-        
+
         # Mock the loader functions
-        from unittest.mock import patch, MagicMock
-        
+        from unittest.mock import MagicMock, patch
+
         mock_driver = MagicMock()
         mock_result = MagicMock()
         mock_result.success = True
@@ -339,23 +340,26 @@ class TestRunCommand:
         mock_result.records_affected = 10
         mock_result.execution_time = 1.23
         mock_result.errors = []
-        
-        with patch('grai.core.loader.connect_neo4j', return_value=mock_driver), \
-             patch('grai.core.loader.verify_connection', return_value=True), \
-             patch('grai.core.loader.execute_cypher_file', return_value=mock_result), \
-             patch('grai.core.loader.close_connection'), \
-             patch('grai.core.loader.get_database_info', return_value={}):
-            
+
+        with (
+            patch("grai.core.loader.connect_neo4j", return_value=mock_driver),
+            patch("grai.core.loader.verify_connection", return_value=True),
+            patch("grai.core.loader.execute_cypher_file", return_value=mock_result),
+            patch("grai.core.loader.close_connection"),
+            patch("grai.core.loader.get_database_info", return_value={}),
+        ):
+
             result = runner.invoke(
                 app,
                 [
                     "run",
                     str(project_dir),
                     "--skip-build",
-                    "--password", "test",
-                ]
+                    "--password",
+                    "test",
+                ],
             )
-        
+
         assert result.exit_code == 0
         assert "Successfully loaded data into Neo4j" in result.stdout
 
@@ -364,9 +368,9 @@ class TestRunCommand:
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
         runner.invoke(app, ["build", str(project_dir)])
-        
-        from unittest.mock import patch, MagicMock
-        
+
+        from unittest.mock import MagicMock, patch
+
         mock_driver = MagicMock()
         mock_result = MagicMock()
         mock_result.success = True
@@ -374,34 +378,40 @@ class TestRunCommand:
         mock_result.records_affected = 6
         mock_result.execution_time = 0.5
         mock_result.errors = []
-        
-        with patch('grai.core.loader.connect_neo4j', return_value=mock_driver) as mock_connect, \
-             patch('grai.core.loader.verify_connection', return_value=True), \
-             patch('grai.core.loader.execute_cypher_file', return_value=mock_result), \
-             patch('grai.core.loader.close_connection'), \
-             patch('grai.core.loader.get_database_info', return_value={}):
-            
+
+        with (
+            patch("grai.core.loader.connect_neo4j", return_value=mock_driver) as mock_connect,
+            patch("grai.core.loader.verify_connection", return_value=True),
+            patch("grai.core.loader.execute_cypher_file", return_value=mock_result),
+            patch("grai.core.loader.close_connection"),
+            patch("grai.core.loader.get_database_info", return_value={}),
+        ):
+
             result = runner.invoke(
                 app,
                 [
                     "run",
                     str(project_dir),
                     "--skip-build",
-                    "--uri", "bolt://custom:7687",
-                    "--user", "admin",
-                    "--password", "secret",
-                    "--database", "testdb",
-                ]
+                    "--uri",
+                    "bolt://custom:7687",
+                    "--user",
+                    "admin",
+                    "--password",
+                    "secret",
+                    "--database",
+                    "testdb",
+                ],
             )
-            
+
             # Verify connection was called with correct parameters
             mock_connect.assert_called_once()
             call_kwargs = mock_connect.call_args[1]
-            assert call_kwargs['uri'] == "bolt://custom:7687"
-            assert call_kwargs['user'] == "admin"
-            assert call_kwargs['password'] == "secret"
-            assert call_kwargs['database'] == "testdb"
-        
+            assert call_kwargs["uri"] == "bolt://custom:7687"
+            assert call_kwargs["user"] == "admin"
+            assert call_kwargs["password"] == "secret"
+            assert call_kwargs["database"] == "testdb"
+
         assert result.exit_code == 0
 
     def test_run_execution_failure(self, tmp_path):
@@ -409,30 +419,33 @@ class TestRunCommand:
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
         runner.invoke(app, ["build", str(project_dir)])
-        
-        from unittest.mock import patch, MagicMock
-        
+
+        from unittest.mock import MagicMock, patch
+
         mock_driver = MagicMock()
         mock_result = MagicMock()
         mock_result.success = False
         mock_result.errors = ["Syntax error in Cypher", "Connection lost"]
-        
-        with patch('grai.core.loader.connect_neo4j', return_value=mock_driver), \
-             patch('grai.core.loader.verify_connection', return_value=True), \
-             patch('grai.core.loader.execute_cypher_file', return_value=mock_result), \
-             patch('grai.core.loader.close_connection'), \
-             patch('grai.core.loader.get_database_info', return_value={}):
-            
+
+        with (
+            patch("grai.core.loader.connect_neo4j", return_value=mock_driver),
+            patch("grai.core.loader.verify_connection", return_value=True),
+            patch("grai.core.loader.execute_cypher_file", return_value=mock_result),
+            patch("grai.core.loader.close_connection"),
+            patch("grai.core.loader.get_database_info", return_value={}),
+        ):
+
             result = runner.invoke(
                 app,
                 [
                     "run",
                     str(project_dir),
                     "--skip-build",
-                    "--password", "test",
-                ]
+                    "--password",
+                    "test",
+                ],
             )
-        
+
         assert result.exit_code == 1
         assert "Execution failed" in result.stdout
         assert "Syntax error in Cypher" in result.stdout
@@ -442,20 +455,21 @@ class TestRunCommand:
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
         runner.invoke(app, ["build", str(project_dir)])
-        
+
         from unittest.mock import patch
-        
-        with patch('grai.core.loader.connect_neo4j', side_effect=Exception("Connection refused")):
+
+        with patch("grai.core.loader.connect_neo4j", side_effect=Exception("Connection refused")):
             result = runner.invoke(
                 app,
                 [
                     "run",
                     str(project_dir),
                     "--skip-build",
-                    "--password", "test",
-                ]
+                    "--password",
+                    "test",
+                ],
             )
-        
+
         assert result.exit_code == 1
         assert "Connection failed" in result.stdout
         assert "Troubleshooting tips" in result.stdout
@@ -465,9 +479,9 @@ class TestRunCommand:
         project_dir = tmp_path / "test-project"
         runner.invoke(app, ["init", str(project_dir)])
         runner.invoke(app, ["build", str(project_dir)])
-        
-        from unittest.mock import patch, MagicMock
-        
+
+        from unittest.mock import MagicMock, patch
+
         mock_driver = MagicMock()
         mock_result = MagicMock()
         mock_result.success = True
@@ -475,30 +489,33 @@ class TestRunCommand:
         mock_result.records_affected = 4
         mock_result.execution_time = 0.8
         mock_result.errors = []
-        
+
         mock_db_info = {
-            'node_count': 100,
-            'relationship_count': 50,
-            'labels': ['Customer', 'Product'],
+            "node_count": 100,
+            "relationship_count": 50,
+            "labels": ["Customer", "Product"],
         }
-        
-        with patch('grai.core.loader.connect_neo4j', return_value=mock_driver), \
-             patch('grai.core.loader.verify_connection', return_value=True), \
-             patch('grai.core.loader.execute_cypher_file', return_value=mock_result), \
-             patch('grai.core.loader.close_connection'), \
-             patch('grai.core.loader.get_database_info', return_value=mock_db_info):
-            
+
+        with (
+            patch("grai.core.loader.connect_neo4j", return_value=mock_driver),
+            patch("grai.core.loader.verify_connection", return_value=True),
+            patch("grai.core.loader.execute_cypher_file", return_value=mock_result),
+            patch("grai.core.loader.close_connection"),
+            patch("grai.core.loader.get_database_info", return_value=mock_db_info),
+        ):
+
             result = runner.invoke(
                 app,
                 [
                     "run",
                     str(project_dir),
                     "--skip-build",
-                    "--password", "test",
+                    "--password",
+                    "test",
                     "--verbose",
-                ]
+                ],
             )
-        
+
         assert result.exit_code == 0
         assert "Database info" in result.stdout
         assert "Nodes:" in result.stdout

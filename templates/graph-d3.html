@@ -133,9 +133,9 @@
                 </div>
             </div>
         </div>
-        
+
         <svg id="graph" width="1200" height="800"></svg>
-        
+
         <div class="legend">
             <div class="legend-title">Legend</div>
             <div class="legend-items">
@@ -154,31 +154,31 @@
             </div>
         </div>
     </div>
-    
+
     <div class="tooltip" id="tooltip"></div>
-    
+
     <script>
         const nodes = [{"id": "entity:customer", "name": "customer", "type": "entity"}, {"id": "source:analytics.customers", "name": "analytics.customers", "type": "source"}, {"id": "entity:product", "name": "product", "type": "entity"}, {"id": "source:analytics.products", "name": "analytics.products", "type": "source"}, {"id": "relation:PURCHASED", "name": "PURCHASED", "type": "relation"}, {"id": "source:analytics.orders", "name": "analytics.orders", "type": "source"}];
         const links = [{"source": "source:analytics.customers", "target": "entity:customer", "type": "produces"}, {"source": "source:analytics.products", "target": "entity:product", "type": "produces"}, {"source": "source:analytics.orders", "target": "relation:PURCHASED", "type": "produces"}, {"source": "entity:customer", "target": "relation:PURCHASED", "type": "participates_in"}, {"source": "relation:PURCHASED", "target": "entity:product", "type": "connects_to"}];
-        
+
         const svg = d3.select("#graph");
         const width = 1200;
         const height = 800;
-        
+
         // Create force simulation
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id).distance(100))
             .force("charge", d3.forceManyBody().strength(-300))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collision", d3.forceCollide().radius(40));
-        
+
         // Create links
         const link = svg.append("g")
             .selectAll("line")
             .data(links)
             .join("line")
             .attr("class", "link");
-        
+
         // Create nodes
         const node = svg.append("g")
             .selectAll("circle")
@@ -189,7 +189,7 @@
             .call(drag(simulation))
             .on("mouseover", showTooltip)
             .on("mouseout", hideTooltip);
-        
+
         // Create labels
         const label = svg.append("g")
             .selectAll("text")
@@ -198,7 +198,7 @@
             .attr("class", "node-label")
             .attr("dy", 30)
             .text(d => d.name);
-        
+
         // Update positions on tick
         simulation.on("tick", () => {
             link
@@ -206,16 +206,16 @@
                 .attr("y1", d => d.source.y)
                 .attr("x2", d => d.target.x)
                 .attr("y2", d => d.target.y);
-            
+
             node
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y);
-            
+
             label
                 .attr("x", d => d.x)
                 .attr("y", d => d.y);
         });
-        
+
         // Drag functionality
         function drag(simulation) {
             function dragstarted(event) {
@@ -223,24 +223,24 @@
                 event.subject.fx = event.subject.x;
                 event.subject.fy = event.subject.y;
             }
-            
+
             function dragged(event) {
                 event.subject.fx = event.x;
                 event.subject.fy = event.y;
             }
-            
+
             function dragended(event) {
                 if (!event.active) simulation.alphaTarget(0);
                 event.subject.fx = null;
                 event.subject.fy = null;
             }
-            
+
             return d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended);
         }
-        
+
         // Tooltip functions
         function showTooltip(event, d) {
             const tooltip = d3.select("#tooltip");
@@ -250,7 +250,7 @@
                 .style("top", (event.pageY - 10) + "px")
                 .html(`<strong>${d.name}</strong><br>Type: ${d.type}`);
         }
-        
+
         function hideTooltip() {
             d3.select("#tooltip").style("opacity", 0);
         }

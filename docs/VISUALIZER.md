@@ -382,9 +382,9 @@ generate_d3_visualization(
 
 ### Supported Browsers
 
-✅ Chrome/Edge 90+  
-✅ Firefox 88+  
-✅ Safari 14+  
+✅ Chrome/Edge 90+
+✅ Firefox 88+
+✅ Safari 14+
 ✅ Opera 76+
 
 ### Requirements
@@ -548,13 +548,13 @@ Planned features for future versions:
 
 The visualization module provides:
 
-✅ Interactive HTML visualizations  
-✅ Two professional formats (D3.js, Cytoscape.js)  
-✅ No server required  
-✅ Browser-based interaction  
-✅ Customizable dimensions and titles  
-✅ Comprehensive testing (16 tests)  
-✅ CLI integration (`grai visualize`)  
+✅ Interactive HTML visualizations
+✅ Two professional formats (D3.js, Cytoscape.js)
+✅ No server required
+✅ Browser-based interaction
+✅ Customizable dimensions and titles
+✅ Comprehensive testing (16 tests)
+✅ CLI integration (`grai visualize`)
 ✅ Perfect for documentation and analysis
 
 Create beautiful, interactive visualizations with a single command!

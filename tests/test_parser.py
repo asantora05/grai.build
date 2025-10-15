@@ -1,11 +1,7 @@
 """Tests for the YAML parser."""
 
-import tempfile
-from pathlib import Path
-
 import pytest
 
-from grai.core.models import Entity, Property, PropertyType, Relation
 from grai.core.parser import (
     ParserError,
     ValidationParserError,
@@ -40,7 +36,7 @@ properties:
 description: Customer entity
 """
         )
-        
+
         entity = parse_entity_file(entity_file)
         assert entity.entity == "customer"
         assert entity.source == "analytics.customers"
@@ -57,7 +53,7 @@ description: Customer entity
         """Test parsing invalid YAML syntax."""
         entity_file = tmp_path / "bad.yml"
         entity_file.write_text("entity: customer\n  bad: : indentation")
-        
+
         with pytest.raises(YAMLParseError, match="Invalid YAML syntax"):
             parse_entity_file(entity_file)
 
@@ -70,7 +66,7 @@ entity: customer
 # Missing 'source' and 'keys'
 """
         )
-        
+
         with pytest.raises(ValidationParserError, match="Invalid entity definition"):
             parse_entity_file(entity_file)
 
@@ -78,7 +74,7 @@ entity: customer
         """Test parsing an empty YAML file."""
         entity_file = tmp_path / "empty.yml"
         entity_file.write_text("# Just comments\n")
-        
+
         with pytest.raises(YAMLParseError, match="empty"):
             parse_entity_file(entity_file)
 
@@ -106,7 +102,7 @@ properties:
 description: Purchase relation
 """
         )
-        
+
         relation = parse_relation_file(relation_file)
         assert relation.relation == "PURCHASED"
         assert relation.from_entity == "customer"
@@ -130,7 +126,7 @@ mappings:
   to_key: product_id
 """
         )
-        
+
         with pytest.raises(ValidationParserError, match="uppercase"):
             parse_relation_file(relation_file)
 
@@ -145,7 +141,7 @@ to: product
 source: analytics.orders
 """
         )
-        
+
         with pytest.raises(ValidationParserError):
             parse_relation_file(relation_file)
 
@@ -157,7 +153,7 @@ class TestLoadEntitiesFromDirectory:
         """Test loading multiple entity files."""
         entities_dir = tmp_path / "entities"
         entities_dir.mkdir()
-        
+
         # Create customer entity
         (entities_dir / "customer.yml").write_text(
             """
@@ -166,7 +162,7 @@ source: analytics.customers
 keys: [customer_id]
 """
         )
-        
+
         # Create product entity
         (entities_dir / "product.yml").write_text(
             """
@@ -175,7 +171,7 @@ source: analytics.products
 keys: [product_id]
 """
         )
-        
+
         entities = load_entities_from_directory(entities_dir)
         assert len(entities) == 2
         entity_names = {e.entity for e in entities}
@@ -185,7 +181,7 @@ keys: [product_id]
         """Test loading from an empty directory."""
         entities_dir = tmp_path / "empty"
         entities_dir.mkdir()
-        
+
         entities = load_entities_from_directory(entities_dir)
         assert len(entities) == 0
 
@@ -198,7 +194,7 @@ keys: [product_id]
         """Test loading entities when one file has an error."""
         entities_dir = tmp_path / "entities"
         entities_dir.mkdir()
-        
+
         # Valid entity
         (entities_dir / "customer.yml").write_text(
             """
@@ -207,7 +203,7 @@ source: analytics.customers
 keys: [customer_id]
 """
         )
-        
+
         # Invalid entity (missing required field)
         (entities_dir / "bad.yml").write_text(
             """
@@ -215,7 +211,7 @@ entity: bad_entity
 # Missing source and keys
 """
         )
-        
+
         with pytest.raises(ParserError, match="Failed to load entities"):
             load_entities_from_directory(entities_dir)
 
@@ -227,7 +223,7 @@ class TestLoadRelationsFromDirectory:
         """Test loading multiple relation files."""
         relations_dir = tmp_path / "relations"
         relations_dir.mkdir()
-        
+
         # Create PURCHASED relation
         (relations_dir / "purchased.yml").write_text(
             """
@@ -240,7 +236,7 @@ mappings:
   to_key: product_id
 """
         )
-        
+
         # Create REVIEWED relation
         (relations_dir / "reviewed.yml").write_text(
             """
@@ -253,7 +249,7 @@ mappings:
   to_key: product_id
 """
         )
-        
+
         relations = load_relations_from_directory(relations_dir)
         assert len(relations) == 2
         relation_names = {r.relation for r in relations}
@@ -275,7 +271,7 @@ config:
     uri: bolt://localhost:7687
 """
         )
-        
+
         manifest = load_project_manifest(manifest_file)
         assert manifest["name"] == "my-project"
         assert manifest["version"] == "1.0.0"
@@ -296,7 +292,7 @@ class TestLoadProject:
         # Create project structure
         project_root = tmp_path / "my-project"
         project_root.mkdir()
-        
+
         # Create grai.yml
         (project_root / "grai.yml").write_text(
             """
@@ -307,7 +303,7 @@ config:
     uri: bolt://localhost:7687
 """
         )
-        
+
         # Create entities directory
         entities_dir = project_root / "entities"
         entities_dir.mkdir()
@@ -321,7 +317,7 @@ properties:
     type: string
 """
         )
-        
+
         # Create relations directory
         relations_dir = project_root / "relations"
         relations_dir.mkdir()
@@ -336,10 +332,10 @@ mappings:
   to_key: product_id
 """
         )
-        
+
         # Load project
         project = load_project(project_root)
-        
+
         assert project.name == "test-project"
         assert project.version == "1.0.0"
         assert len(project.entities) == 1
@@ -352,14 +348,14 @@ mappings:
         """Test loading a minimal project with just a manifest."""
         project_root = tmp_path / "minimal"
         project_root.mkdir()
-        
+
         (project_root / "grai.yml").write_text(
             """
 name: minimal-project
 version: 0.1.0
 """
         )
-        
+
         project = load_project(project_root)
         assert project.name == "minimal-project"
         assert project.version == "0.1.0"
@@ -375,7 +371,7 @@ version: 0.1.0
         """Test loading project without grai.yml."""
         project_root = tmp_path / "no-manifest"
         project_root.mkdir()
-        
+
         with pytest.raises(ParserError, match="Failed to load project manifest"):
             load_project(project_root)
 
@@ -383,7 +379,7 @@ version: 0.1.0
         """Test loading project with custom directory names."""
         project_root = tmp_path / "custom"
         project_root.mkdir()
-        
+
         # Create grai.yml
         (project_root / "grai.yml").write_text(
             """
@@ -391,7 +387,7 @@ name: custom-project
 version: 1.0.0
 """
         )
-        
+
         # Create custom entities directory
         custom_entities = project_root / "my_entities"
         custom_entities.mkdir()
@@ -402,7 +398,7 @@ source: analytics.customers
 keys: [customer_id]
 """
         )
-        
+
         # Load with custom directory name
         project = load_project(project_root, entities_dir="my_entities")
         assert len(project.entities) == 1
