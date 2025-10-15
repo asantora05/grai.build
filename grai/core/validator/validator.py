@@ -305,7 +305,8 @@ def validate_sources(
 
     # Check entities have valid sources
     for entity in entities:
-        if not entity.source or not entity.source.strip():
+        source_name = entity.get_source_name()
+        if not source_name or not source_name.strip():
             result.add_error(
                 "Entity has empty or missing source",
                 context=f"Entity {entity.entity}",
@@ -313,7 +314,8 @@ def validate_sources(
 
     # Check relations have valid sources
     for relation in relations:
-        if not relation.source or not relation.source.strip():
+        source_name = relation.get_source_name()
+        if not source_name or not source_name.strip():
             result.add_error(
                 "Relation has empty or missing source",
                 context=f"Relation {relation.relation}",
@@ -399,7 +401,8 @@ def validate_entity(entity: Entity) -> ValidationResult:
             )
 
     # Check source
-    if not entity.source or not entity.source.strip():
+    source_name = entity.get_source_name()
+    if not source_name or not source_name.strip():
         result.add_error("Entity has empty or missing source", context=f"Entity {entity.entity}")
 
     return result
@@ -431,7 +434,8 @@ def validate_relation(
         )
 
     # Check source
-    if not relation.source or not relation.source.strip():
+    source_name = relation.get_source_name()
+    if not source_name or not source_name.strip():
         result.add_error(
             "Relation has empty or missing source",
             context=f"Relation {relation.relation}",

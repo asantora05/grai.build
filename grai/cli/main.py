@@ -147,9 +147,18 @@ description: A knowledge graph project built with grai.build
 """
         (project_dir / "grai.yml").write_text(grai_yml)
 
-        # Create example entity
+        # Create example entity (using enhanced source configuration)
         customer_yml = """entity: customer
-source: analytics.customers
+# Enhanced source configuration with metadata
+source:
+  name: customers
+  type: table
+  db_schema: analytics
+  database: warehouse
+  connection: prod_db
+  metadata:
+    owner: data-team
+    refresh_schedule: daily
 keys:
   - customer_id
 properties:
@@ -166,11 +175,13 @@ properties:
   - name: created_at
     type: datetime
     description: Account creation timestamp
+description: Customer entity from analytics warehouse
 """
         (project_dir / "entities" / "customer.yml").write_text(customer_yml)
 
-        # Create example entity
+        # Create example entity (simple source format for comparison)
         product_yml = """entity: product
+# Simple source format (backward compatible - type is auto-inferred as 'table')
 source: analytics.products
 keys:
   - product_id
@@ -188,14 +199,22 @@ properties:
   - name: price
     type: float
     description: Product price
+description: Product entity using simple source format
 """
         (project_dir / "entities" / "product.yml").write_text(product_yml)
 
-        # Create example relation
+        # Create example relation (enhanced source with CSV type)
         purchased_yml = """relation: PURCHASED
 from: customer
 to: product
-source: analytics.orders
+# Enhanced source showing CSV file configuration
+source:
+  name: orders.csv
+  type: csv
+  format: utf-8
+  metadata:
+    location: ./data/
+    delimiter: ","
 mappings:
   from_key: customer_id
   to_key: product_id
@@ -213,6 +232,7 @@ properties:
   - name: total_amount
     type: float
     description: Total order amount
+description: Purchase relationship with CSV source configuration
 """
         (project_dir / "relations" / "purchased.yml").write_text(purchased_yml)
 
@@ -410,6 +430,43 @@ ORDER BY total_spent DESC
 6. Modify CSV files in `data/` with your own data
 7. Run `grai validate` to check for errors
 8. Run `grai build` to see the compiled Cypher
+
+## Source Configuration Formats
+
+This project demonstrates both source configuration formats:
+
+### Enhanced Format (customer.yml)
+```yaml
+source:
+  name: customers
+  type: table
+  db_schema: analytics
+  database: warehouse
+  connection: prod_db
+  metadata:
+    owner: data-team
+    refresh_schedule: daily
+```
+
+Benefits:
+- Explicit source type (table, csv, api, stream, etc.)
+- Additional metadata for documentation
+- Support for multiple connections
+- Better integration with data catalogs
+
+### Simple Format (product.yml)
+```yaml
+source: analytics.products
+```
+
+Benefits:
+- Backward compatible with existing projects
+- Concise for simple use cases
+- Auto-infers type from format (e.g., `schema.table` → type: table)
+
+Both formats work identically - use whichever fits your needs!
+
+See the project's `docs/` folder for more examples.
 
 ## Learn More
 
@@ -1166,7 +1223,7 @@ def info(
             for entity in project.entities:
                 entity_table.add_row(
                     entity.entity,
-                    entity.source,
+                    entity.get_source_name(),
                     ", ".join(entity.keys),
                     str(len(entity.properties)),
                 )
@@ -1186,7 +1243,7 @@ def info(
                 relation_table.add_row(
                     relation.relation,
                     f"{relation.from_entity} → {relation.to_entity}",
-                    relation.source,
+                    relation.get_source_name(),
                     str(len(relation.properties)),
                 )
 
@@ -2026,7 +2083,7 @@ def _generate_entity_catalog_html(project: Project) -> str:
         <div class="entity-card">
             <h3>🔹 {entity.entity}</h3>
             <div class="meta">
-                <div><strong>Source:</strong> <code>{entity.source}</code></div>
+                <div><strong>Source:</strong> <code>{entity.get_source_name()}</code></div>
                 <div><strong>Keys:</strong> <code>{', '.join(entity.keys)}</code></div>
             </div>
             {f'<p class="description">{entity.description}</p>' if hasattr(entity, 'description') and entity.description else ''}
@@ -2182,7 +2239,7 @@ def _generate_relation_catalog_html(project: Project) -> str:
                 <span class="entity">{relation.to_entity}</span>
             </div>
             <div class="meta">
-                <div><strong>Source:</strong> <code>{relation.source}</code></div>
+                <div><strong>Source:</strong> <code>{relation.get_source_name()}</code></div>
                 <div><strong>From Key:</strong> <code>{relation.mappings.from_key}</code></div>
                 <div><strong>To Key:</strong> <code>{relation.mappings.to_key}</code></div>
             </div>

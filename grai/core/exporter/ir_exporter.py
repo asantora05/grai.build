@@ -66,15 +66,24 @@ def _export_entity(entity: Entity) -> Dict[str, Any]:
     Returns:
         Dictionary with entity structure
     """
+    source_config = entity.get_source_config()
     return {
         "name": entity.entity,
-        "source": entity.source,
+        "source": {
+            "name": source_config.name,
+            "type": source_config.type.value if source_config.type else None,
+            "connection": source_config.connection,
+            "schema": source_config.db_schema,
+            "database": source_config.database,
+            "format": source_config.format,
+            "metadata": source_config.metadata,
+        },
         "keys": entity.keys,
         "properties": [_export_property(prop) for prop in entity.properties],
         "metadata": {
             "property_count": len(entity.properties),
             "key_count": len(entity.keys),
-            "has_source": bool(entity.source),
+            "has_source": bool(source_config.name),
         },
     }
 
@@ -89,11 +98,20 @@ def _export_relation(relation: Relation) -> Dict[str, Any]:
     Returns:
         Dictionary with relation structure
     """
+    source_config = relation.get_source_config()
     return {
         "name": relation.relation,
         "from_entity": relation.from_entity,
         "to_entity": relation.to_entity,
-        "source": relation.source,
+        "source": {
+            "name": source_config.name,
+            "type": source_config.type.value if source_config.type else None,
+            "connection": source_config.connection,
+            "schema": source_config.db_schema,
+            "database": source_config.database,
+            "format": source_config.format,
+            "metadata": source_config.metadata,
+        },
         "mappings": {
             "from_key": relation.mappings.from_key,
             "to_key": relation.mappings.to_key,
@@ -101,7 +119,7 @@ def _export_relation(relation: Relation) -> Dict[str, Any]:
         "properties": [_export_property(prop) for prop in relation.properties],
         "metadata": {
             "property_count": len(relation.properties),
-            "has_source": bool(relation.source),
+            "has_source": bool(source_config.name),
             "direction": f"{relation.from_entity} -> {relation.to_entity}",
         },
     }

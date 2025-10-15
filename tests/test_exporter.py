@@ -94,7 +94,9 @@ class TestExportToIR:
         assert len(entities) == 2
 
         customer = next(e for e in entities if e["name"] == "customer")
-        assert customer["source"] == "analytics.customers"
+        # Source is now a dict with detailed config
+        assert customer["source"]["name"] == "analytics.customers"
+        assert customer["source"]["type"] == "table"  # Should be inferred
         assert customer["keys"] == ["customer_id"]
         assert len(customer["properties"]) == 3
         assert customer["metadata"]["property_count"] == 3
@@ -111,7 +113,9 @@ class TestExportToIR:
         assert purchased["name"] == "PURCHASED"
         assert purchased["from_entity"] == "customer"
         assert purchased["to_entity"] == "product"
-        assert purchased["source"] == "analytics.orders"
+        # Source is now a dict with detailed config
+        assert purchased["source"]["name"] == "analytics.orders"
+        assert purchased["source"]["type"] == "table"  # Should be inferred
         assert purchased["mappings"]["from_key"] == "customer_id"
         assert purchased["mappings"]["to_key"] == "product_id"
         assert len(purchased["properties"]) == 2
@@ -301,7 +305,8 @@ class TestGetEntityFromIR:
 
         assert customer is not None
         assert customer["name"] == "customer"
-        assert customer["source"] == "analytics.customers"
+        # Source is now a dict with detailed config
+        assert customer["source"]["name"] == "analytics.customers"
 
     def test_get_nonexistent_entity(self, sample_project):
         """Test getting a non-existent entity."""

@@ -331,7 +331,8 @@ def generate_load_csv_statements(
 
     # Generate entity load statements
     for entity in project.entities:
-        csv_file = f"{data_dir}/{entity.source.replace('.', '_')}.csv"
+        source_name = entity.get_source_name()
+        csv_file = f"{data_dir}/{source_name.replace('.', '_')}.csv"
 
         # Build LOAD CSV statement
         merge_keys = {key: f"row.{key}" for key in entity.keys}
@@ -354,7 +355,8 @@ def generate_load_csv_statements(
 
     # Generate relation load statements
     for relation in project.relations:
-        csv_file = f"{data_dir}/{relation.source.replace('.', '_')}.csv"
+        source_name = relation.get_source_name()
+        csv_file = f"{data_dir}/{source_name.replace('.', '_')}.csv"
 
         lines = [
             f"// Load {relation.relation} from CSV",

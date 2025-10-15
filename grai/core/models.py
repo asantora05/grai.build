@@ -6,7 +6,7 @@ that form the foundation of the declarative knowledge graph modeling.
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -21,6 +21,73 @@ class PropertyType(str, Enum):
     DATE = "date"
     DATETIME = "datetime"
     JSON = "json"
+
+
+class SourceType(str, Enum):
+    """Supported source types for entities and relations."""
+
+    DATABASE = "database"
+    TABLE = "table"
+    CSV = "csv"
+    JSON = "json"
+    PARQUET = "parquet"
+    API = "api"
+    STREAM = "stream"
+    OTHER = "other"
+
+
+class SourceConfig(BaseModel):
+    """
+    Configuration for entity/relation data sources.
+
+    Supports both simple string format (backward compatible) and detailed config.
+
+    Attributes:
+        name: Source identifier (e.g., table name, file path, API endpoint).
+        type: Type of data source.
+        connection: Optional connection string or identifier.
+        schema: Optional database schema name.
+        database: Optional database name.
+        format: Optional data format details.
+        metadata: Optional additional source metadata.
+    """
+
+    name: str = Field(..., min_length=1, description="Source identifier")
+    type: Optional[SourceType] = Field(default=None, description="Source type")
+    connection: Optional[str] = Field(default=None, description="Connection identifier")
+    db_schema: Optional[str] = Field(default=None, description="Database schema")
+    database: Optional[str] = Field(default=None, description="Database name")
+    format: Optional[str] = Field(default=None, description="Data format details")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    @classmethod
+    def from_string(cls, source: str) -> "SourceConfig":
+        """
+        Create a SourceConfig from a simple string.
+
+        Maintains backward compatibility with existing entity definitions.
+
+        Args:
+            source: Simple source string (e.g., "analytics.customers")
+
+        Returns:
+            SourceConfig with inferred type if possible.
+        """
+        # Try to infer type from string
+        source_type = None
+        if "." in source:
+            # Likely a database table (schema.table)
+            source_type = SourceType.TABLE
+        elif source.endswith(".csv"):
+            source_type = SourceType.CSV
+        elif source.endswith(".json"):
+            source_type = SourceType.JSON
+        elif source.endswith(".parquet"):
+            source_type = SourceType.PARQUET
+        elif source.startswith("http://") or source.startswith("https://"):
+            source_type = SourceType.API
+
+        return cls(name=source, type=source_type)
 
 
 class Property(BaseModel):
@@ -56,7 +123,7 @@ class Entity(BaseModel):
 
     Attributes:
         entity: The entity type name (becomes the node label in Neo4j).
-        source: The data source (e.g., table name, file path).
+        source: The data source - can be a string or SourceConfig object.
         keys: List of property names that uniquely identify this entity.
         properties: List of properties/attributes for this entity.
         description: Optional description of the entity.
@@ -64,13 +131,21 @@ class Entity(BaseModel):
     """
 
     entity: str = Field(..., min_length=1, description="Entity type name")
-    source: str = Field(..., min_length=1, description="Data source identifier")
+    source: Union[str, SourceConfig] = Field(..., description="Data source identifier or config")
     keys: List[str] = Field(..., min_length=1, description="Key properties for uniqueness")
     properties: List[Property] = Field(
         default_factory=list, description="Entity properties/attributes"
     )
     description: Optional[str] = Field(default=None, description="Entity description")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    @field_validator("source")
+    @classmethod
+    def validate_source(cls, v: Union[str, SourceConfig]) -> SourceConfig:
+        """Convert string source to SourceConfig for consistency."""
+        if isinstance(v, str):
+            return SourceConfig.from_string(v)
+        return v
 
     @field_validator("entity")
     @classmethod
@@ -109,6 +184,28 @@ class Entity(BaseModel):
         """
         return [p for p in self.properties if p.name in self.keys]
 
+    def get_source_name(self) -> str:
+        """
+        Get the source name as a string.
+
+        Returns:
+            Source name string.
+        """
+        if isinstance(self.source, SourceConfig):
+            return self.source.name
+        return str(self.source)
+
+    def get_source_config(self) -> SourceConfig:
+        """
+        Get the full source configuration.
+
+        Returns:
+            SourceConfig object.
+        """
+        if isinstance(self.source, SourceConfig):
+            return self.source
+        return SourceConfig.from_string(str(self.source))
+
 
 class RelationMapping(BaseModel):
     """
@@ -131,7 +228,7 @@ class Relation(BaseModel):
         relation: The relation type name (becomes the edge label in Neo4j).
         from_entity: The source entity type.
         to_entity: The target entity type.
-        source: The data source (e.g., table name, file path).
+        source: The data source - can be a string or SourceConfig object.
         mappings: How source and target entities connect via keys.
         properties: List of properties/attributes for this relation.
         description: Optional description of the relation.
@@ -141,7 +238,7 @@ class Relation(BaseModel):
     relation: str = Field(..., min_length=1, description="Relation type name")
     from_entity: str = Field(..., min_length=1, alias="from", description="Source entity type")
     to_entity: str = Field(..., min_length=1, alias="to", description="Target entity type")
-    source: str = Field(..., min_length=1, description="Data source identifier")
+    source: Union[str, SourceConfig] = Field(..., description="Data source identifier or config")
     mappings: RelationMapping = Field(..., description="Key mappings between entities")
     properties: List[Property] = Field(
         default_factory=list, description="Relation properties/attributes"
@@ -150,6 +247,14 @@ class Relation(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("source")
+    @classmethod
+    def validate_source(cls, v: Union[str, SourceConfig]) -> SourceConfig:
+        """Convert string source to SourceConfig for consistency."""
+        if isinstance(v, str):
+            return SourceConfig.from_string(v)
+        return v
 
     @field_validator("relation")
     @classmethod
@@ -172,6 +277,28 @@ class Relation(BaseModel):
             The Property object if found, None otherwise.
         """
         return next((p for p in self.properties if p.name == name), None)
+
+    def get_source_name(self) -> str:
+        """
+        Get the source name as a string.
+
+        Returns:
+            Source name string.
+        """
+        if isinstance(self.source, SourceConfig):
+            return self.source.name
+        return str(self.source)
+
+    def get_source_config(self) -> SourceConfig:
+        """
+        Get the full source configuration.
+
+        Returns:
+            SourceConfig object.
+        """
+        if isinstance(self.source, SourceConfig):
+            return self.source
+        return SourceConfig.from_string(str(self.source))
 
 
 class Project(BaseModel):

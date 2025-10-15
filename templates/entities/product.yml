@@ -1,6 +1,9 @@
 # Product Entity
 entity: product
+
+# Simple source format (backward compatible)
 source: analytics.products
+
 keys:
   - product_id
 

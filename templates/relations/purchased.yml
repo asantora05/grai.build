@@ -2,7 +2,17 @@
 relation: PURCHASED
 from: customer
 to: product
-source: analytics.orders
+
+# Enhanced source configuration with metadata
+source:
+  name: analytics.orders
+  type: table
+  database: postgres_prod
+  db_schema: analytics
+  connection: primary_db
+  metadata:
+    refresh_cadence: daily
+    owner: data-team
 
 mappings:
   from_key: customer_id

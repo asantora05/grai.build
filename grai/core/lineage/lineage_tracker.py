@@ -123,13 +123,17 @@ def build_lineage_graph(project: Project) -> LineageGraph:
 
     # Add entity nodes
     for entity in project.entities:
+        source_config = entity.get_source_config()
+        source_name = source_config.name
+
         node_id = f"entity:{entity.entity}"
         node = LineageNode(
             id=node_id,
             name=entity.entity,
             type=NodeType.ENTITY,
             metadata={
-                "source": entity.source,
+                "source": source_name,
+                "source_type": source_config.type.value if source_config.type else None,
                 "keys": entity.keys,
                 "property_count": len(entity.properties),
                 "description": getattr(entity, "description", None),
@@ -138,13 +142,16 @@ def build_lineage_graph(project: Project) -> LineageGraph:
         graph.add_node(node)
 
         # Add source node if not exists
-        source_id = f"source:{entity.source}"
+        source_id = f"source:{source_name}"
         if source_id not in graph.nodes:
             source_node = LineageNode(
                 id=source_id,
-                name=entity.source,
+                name=source_name,
                 type=NodeType.SOURCE,
-                metadata={"type": "data_source"},
+                metadata={
+                    "type": "data_source",
+                    "source_type": source_config.type.value if source_config.type else None,
+                },
             )
             graph.add_node(source_node)
 
@@ -160,13 +167,17 @@ def build_lineage_graph(project: Project) -> LineageGraph:
 
     # Add relation nodes and edges
     for relation in project.relations:
+        source_config = relation.get_source_config()
+        source_name = source_config.name
+
         node_id = f"relation:{relation.relation}"
         node = LineageNode(
             id=node_id,
             name=relation.relation,
             type=NodeType.RELATION,
             metadata={
-                "source": relation.source,
+                "source": source_name,
+                "source_type": source_config.type.value if source_config.type else None,
                 "from_entity": relation.from_entity,
                 "to_entity": relation.to_entity,
                 "property_count": len(relation.properties),
@@ -176,13 +187,16 @@ def build_lineage_graph(project: Project) -> LineageGraph:
         graph.add_node(node)
 
         # Add source node if not exists
-        source_id = f"source:{relation.source}"
+        source_id = f"source:{source_name}"
         if source_id not in graph.nodes:
             source_node = LineageNode(
                 id=source_id,
-                name=relation.source,
+                name=source_name,
                 type=NodeType.SOURCE,
-                metadata={"type": "data_source"},
+                metadata={
+                    "type": "data_source",
+                    "source_type": source_config.type.value if source_config.type else None,
+                },
             )
             graph.add_node(source_node)
 

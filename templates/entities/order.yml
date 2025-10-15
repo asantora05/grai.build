@@ -1,0 +1,36 @@
+# Order Entity - CSV Source Example
+entity: order
+
+# CSV file source configuration
+source:
+  name: data/orders.csv
+  type: csv
+  format: utf-8
+  metadata:
+    delimiter: ","
+    has_header: true
+    update_frequency: hourly
+
+keys:
+  - order_id
+
+properties:
+  - name: order_id
+    type: string
+    required: true
+    description: Unique order identifier
+
+  - name: order_date
+    type: datetime
+    required: true
+    description: Order placement date
+
+  - name: status
+    type: string
+    description: Order status (pending, completed, cancelled)
+
+  - name: total
+    type: float
+    description: Order total amount
+
+description: Order entity loaded from CSV file

@@ -39,7 +39,11 @@ description: Customer entity
 
         entity = parse_entity_file(entity_file)
         assert entity.entity == "customer"
-        assert entity.source == "analytics.customers"
+        assert entity.get_source_name() == "analytics.customers"
+        # Verify it's a SourceConfig with inferred type
+        source_config = entity.get_source_config()
+        assert source_config.name == "analytics.customers"
+        assert source_config.type.value == "table"  # Should infer from schema.table pattern
         assert entity.keys == ["customer_id"]
         assert len(entity.properties) == 2
         assert entity.description == "Customer entity"
@@ -107,7 +111,11 @@ description: Purchase relation
         assert relation.relation == "PURCHASED"
         assert relation.from_entity == "customer"
         assert relation.to_entity == "product"
-        assert relation.source == "analytics.orders"
+        assert relation.get_source_name() == "analytics.orders"
+        # Verify it's a SourceConfig with inferred type
+        source_config = relation.get_source_config()
+        assert source_config.name == "analytics.orders"
+        assert source_config.type.value == "table"
         assert relation.mappings.from_key == "customer_id"
         assert relation.mappings.to_key == "product_id"
         assert len(relation.properties) == 2

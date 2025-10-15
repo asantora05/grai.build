@@ -1,6 +1,14 @@
 # Customer Entity
 entity: customer
-source: analytics.customers
+
+# Enhanced source configuration (also supports simple string: "analytics.customers")
+source:
+  name: analytics.customers
+  type: table
+  database: postgres_prod
+  db_schema: analytics
+  connection: primary_db
+
 keys:
   - customer_id
 
