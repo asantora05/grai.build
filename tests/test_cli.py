@@ -25,7 +25,7 @@ class TestCLIBasics:
         """Test that --version works."""
         result = runner.invoke(app, ["--version"])
         assert result.exit_code == 0
-        assert "0.1.0" in result.stdout
+        assert "0.3.0" in result.stdout
 
     def test_commands_registered(self):
         """Test that all commands are registered."""

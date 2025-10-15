@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from grai import __version__
 from grai.core.cache import (
     clear_cache,
     load_cache,
@@ -51,7 +52,7 @@ console = Console()
 def version_callback(value: bool):
     """Show version information."""
     if value:
-        console.print("grai.build version 0.1.0", style="bold green")
+        console.print(f"grai.build version {__version__}", style="bold green")
         raise typer.Exit()
 
 
