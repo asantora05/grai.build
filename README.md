@@ -1,28 +1,33 @@
 # grai.build
 
-> **Declarative knowledge graph modeling** - dbt for graph databases
+> **Schema-as-code for graph databases** - Documentation like dbt, migrations for Neo4j
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 📘 What is grai.build?
 
-**grai.build is schema-as-code for graph databases** - like dbt, but for knowledge graphs.
+**grai.build brings dbt's documentation experience to graph databases** - define your schema in YAML, generate beautiful docs, and manage migrations.
 
 It manages your graph **schema**, not your data. You define entities and relations in YAML, and grai.build:
 
 - ✅ **Validates** your schema for consistency
 - ✅ **Generates** Cypher constraints and indexes
-- ✅ **Documents** your graph structure automatically
+- ✅ **Documents** your graph structure automatically (like `dbt docs`)
+- ✅ **Tracks lineage** with interactive visualizations
 - ✅ **Integrates** with your CI/CD pipeline
 
 **What it's NOT:**
 
 - ❌ Not an ETL tool (use Airflow, Prefect, or dbt for data loading)
-- ❌ Not a data pipeline (use Kafka, CDC, or application code for that)
+- ❌ Not a data transformation framework (dbt does this for SQL)
 - ❌ Not a replacement for your existing data infrastructure
 
-**Think of it as:** Database migrations (Alembic, Flyway) for graph databases. You manage the schema, your pipelines manage the data.
+**Think of it as:**
+
+- **Like dbt:** Declarative YAML definitions, beautiful documentation, lineage tracking
+- **Like Alembic/Flyway:** Database migrations and schema management
+- **For graphs:** Manages Neo4j schema while your pipelines handle data
 
 ## 🚀 Quick Start
 
@@ -39,8 +44,11 @@ pip install grai-build
 grai init my-graph-project
 cd my-graph-project
 
-# Build and validate
+# Validate and build
 grai build
+
+# Generate documentation (like dbt docs)
+grai docs --serve
 
 # Deploy schema to Neo4j
 grai run --uri bolt://localhost:7687 --user neo4j --password secret
@@ -126,8 +134,10 @@ SET r.order_id = row.order_id,
 
 ## 🎯 Features
 
-- **Declarative modeling** - Define your graph schema in YAML
+- **Declarative modeling** - Define your graph schema in YAML (like dbt models)
 - **Schema validation** - Catch errors before deployment
+- **Documentation generation** - Beautiful HTML docs with `grai docs` (like `dbt docs generate/serve`)
+- **Lineage visualization** - Interactive graph and Mermaid diagrams showing data flow
 - **Multi-backend support** - Start with Neo4j, expand to Gremlin later
 - **CLI-first** - Integrates into your CI/CD pipeline
 - **Type-safe** - Built with Pydantic for robust validation
@@ -144,10 +154,13 @@ vim entities/customer.yml
 # 2. Validate
 grai validate
 
-# 3. Deploy schema
+# 3. Generate documentation
+grai docs --serve  # Opens browser with interactive docs
+
+# 4. Deploy schema
 grai run --schema-only
 
-# 4. Test with sample data
+# 5. Test with sample data
 grai run --load-csv
 ```
 
@@ -242,55 +255,71 @@ ruff check grai/
 
 ## 📖 Documentation
 
-Coming soon! For now, check out the [instructions](.github/instructions/instructions.instructions.md) for development guidance.
+Generate beautiful, interactive documentation for your graph:
+
+```bash
+# Generate and serve documentation locally
+grai docs --serve
+
+# Generate to custom directory
+grai docs --output ./my-docs
+
+# Just generate (don't serve)
+grai docs
+```
+
+The documentation includes:
+
+- 📊 Project overview with stats
+- 📦 Entity catalog with properties
+- 🔗 Relation catalog with mappings
+- 🕸️ Interactive graph visualization (D3.js)
+- 🔄 Lineage diagrams (Mermaid.js)
+
+For development guidance, check out the [instructions](.github/instructions/instructions.instructions.md).
 
 ## 🗺️ Roadmap
 
 - [x] Core Pydantic models
 - [x] YAML parser
 - [x] Schema validator
-- [ ] Cypher compiler
-- [ ] Neo4j loader
-- [ ] CLI commands (`init`, `build`, `test`, `run`)
-- [ ] Graph IR export (JSON)
-- [ ] Lineage visualization
+- [x] Cypher compiler
+- [x] Neo4j loader
+- [x] CLI commands (`init`, `build`, `validate`, `run`, `docs`)
+- [x] Graph IR export (JSON)
+- [x] Documentation generation (dbt-style)
+- [x] Lineage visualization (Mermaid + D3.js)
+- [ ] Graph visualization improvements
 - [ ] Gremlin backend support
 - [ ] Incremental sync
+- [ ] Schema versioning and migrations
 
 ## 📊 Current Status
 
-**v0.1.0-alpha** - Core foundation complete
+**v0.3.0** - Feature-complete MVP with documentation
 
-- ✅ **Core Models** (95% coverage, 13 tests)
+- ✅ **Core Models** - Pydantic models for Entity, Relation, Property
+- ✅ **YAML Parser** - Parse and load entity/relation definitions
+- ✅ **Schema Validator** - Validate references and mappings
+- ✅ **Cypher Compiler** - Generate Neo4j constraints and indexes
+- ✅ **Neo4j Loader** - Execute Cypher against Neo4j instances
+- ✅ **Documentation Generator** - Interactive HTML docs (like dbt docs)
+- ✅ **Lineage Tracking** - Visualize data flow and dependencies
+- ✅ **Graph Visualizer** - D3.js and Cytoscape visualizations
+- ✅ **Build Cache** - Incremental builds for faster iteration
+- ✅ **CLI Commands** - Full command suite (`init`, `build`, `validate`, `run`, `docs`, etc.)
 
-  - Pydantic models for Entity, Relation, Property
-  - Full validation and type safety
-  - Lookup methods and utilities
+**257 tests passing | High coverage across all modules**
 
-- ✅ **YAML Parser** (83% coverage, 20 tests)
-
-  - Parse entity and relation YAML files
-  - Batch directory loading
-  - Complete project loading
-  - Robust error handling
-
-- ✅ **Validator** (91% coverage, 27 tests)
-  - Entity reference validation
-  - Key mapping verification
-  - Circular dependency detection
-  - Strict mode support
-  - Detailed error messages
-
-**Total: 60 tests passing | 89% coverage**
-
-📝 **Coming Next**: Cypher compiler to generate Neo4j queries
-
-Run demos to see functionality:
+See it in action:
 
 ```bash
-python demo.py            # Core models
-python demo_parser.py     # YAML parser
-python demo_validator.py  # Validator
+# Initialize example project
+grai init my-project
+cd my-project
+
+# Generate and view documentation
+grai docs --serve
 ```
 
 ## 🤝 Contributing
