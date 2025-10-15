@@ -159,8 +159,8 @@ cd ~/my-projects/my-graph-project
 # Initialize a new grai project
 grai init
 
-# Or copy the example template
-cp -r /Users/andrewsantora/Documents/Repos/grai.build/templates/* .
+# Or copy the example template (replace with your actual path)
+cp -r /path/to/grai.build/templates/* .
 ```
 
 Your project structure should look like:
@@ -295,7 +295,7 @@ Connecting to bolt://localhost:7687...
 cd ~/my-projects/my-graph-project
 
 # Or if you want to test with the templates first:
-cd /Users/andrewsantora/Documents/Repos/grai.build/templates
+cd /path/to/grai.build/templates
 ```
 
 ### Step 2: Build and Validate

@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "Andrew Santora", email = "andrew@grai.build"}
+    {name = "grai.build", email = "hello@grai.build"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
