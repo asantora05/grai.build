@@ -2,10 +2,10 @@
 grai.build - Declarative knowledge graph modeling tool.
 """
 
-try:
-    from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
+try:
     __version__ = version("grai-build")
-except Exception:
-    # Fallback for development or if package metadata is not available
-    __version__ = "0.3.2"
+except PackageNotFoundError:
+    # Package not installed - user needs to run: pip install -e .
+    __version__ = "unknown (not installed)"
