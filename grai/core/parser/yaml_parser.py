@@ -112,7 +112,7 @@ def parse_entity(data: Dict[str, Any], file_path: Optional[Path] = None) -> Enti
         # Parse properties if they exist
         if "properties" in data and isinstance(data["properties"], list):
             data["properties"] = [parse_property(prop) for prop in data["properties"]]
-        
+
         return Entity(**data)
     except ValidationError as e:
         raise ValidationParserError(f"Invalid entity definition: {e}", file_path)
@@ -140,11 +140,11 @@ def parse_relation(data: Dict[str, Any], file_path: Optional[Path] = None) -> Re
         # Parse properties if they exist
         if "properties" in data and isinstance(data["properties"], list):
             data["properties"] = [parse_property(prop) for prop in data["properties"]]
-        
+
         # Parse mappings if they exist
         if "mappings" in data and isinstance(data["mappings"], dict):
             data["mappings"] = RelationMapping(**data["mappings"])
-        
+
         return Relation(**data)
     except ValidationError as e:
         raise ValidationParserError(f"Invalid relation definition: {e}", file_path)
@@ -203,14 +203,14 @@ def discover_yaml_files(directory: Path, pattern: str = "*.yml") -> List[Path]:
     """
     if not directory.exists():
         return []
-    
+
     if not directory.is_dir():
         return []
-    
+
     # Use rglob for recursive search
     yaml_files = list(directory.glob(pattern))
     yaml_files.extend(directory.glob(pattern.replace(".yml", ".yaml")))
-    
+
     return sorted(yaml_files)
 
 
@@ -230,22 +230,22 @@ def load_entities_from_directory(directory: Union[str, Path]) -> List[Entity]:
     path = Path(directory)
     if not path.exists():
         raise ParserError(f"Directory not found: {path}")
-    
+
     yaml_files = discover_yaml_files(path)
     entities = []
     errors = []
-    
+
     for file_path in yaml_files:
         try:
             entity = parse_entity_file(file_path)
             entities.append(entity)
         except ParserError as e:
             errors.append(str(e))
-    
+
     if errors:
         error_msg = "\n".join(errors)
         raise ParserError(f"Failed to load entities:\n{error_msg}")
-    
+
     return entities
 
 
@@ -265,22 +265,22 @@ def load_relations_from_directory(directory: Union[str, Path]) -> List[Relation]
     path = Path(directory)
     if not path.exists():
         raise ParserError(f"Directory not found: {path}")
-    
+
     yaml_files = discover_yaml_files(path)
     relations = []
     errors = []
-    
+
     for file_path in yaml_files:
         try:
             relation = parse_relation_file(file_path)
             relations.append(relation)
         except ParserError as e:
             errors.append(str(e))
-    
+
     if errors:
         error_msg = "\n".join(errors)
         raise ParserError(f"Failed to load relations:\n{error_msg}")
-    
+
     return relations
 
 
@@ -332,17 +332,17 @@ def load_project(
         ParserError: If loading fails.
     """
     root = Path(project_root)
-    
+
     if not root.exists():
         raise ParserError(f"Project root not found: {root}")
-    
+
     # Load manifest
     manifest_path = root / manifest_file
     try:
         manifest = load_project_manifest(manifest_path)
     except ParserError as e:
         raise ParserError(f"Failed to load project manifest: {e}")
-    
+
     # Load entities
     entities_path = root / entities_dir
     entities = []
@@ -351,7 +351,7 @@ def load_project(
             entities = load_entities_from_directory(entities_path)
         except ParserError as e:
             raise ParserError(f"Failed to load entities: {e}")
-    
+
     # Load relations
     relations_path = root / relations_dir
     relations = []
@@ -360,7 +360,7 @@ def load_project(
             relations = load_relations_from_directory(relations_path)
         except ParserError as e:
             raise ParserError(f"Failed to load relations: {e}")
-    
+
     # Create project
     try:
         project = Project(

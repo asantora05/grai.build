@@ -23,16 +23,16 @@ def generate_d3_visualization(
 ) -> None:
     """
     Generate interactive D3.js visualization of the knowledge graph.
-    
+
     Creates an HTML file with an interactive force-directed graph using D3.js.
-    
+
     Args:
         project: The Project to visualize
         output_path: Path to save the HTML file
         title: Optional title for the visualization (defaults to project name)
         width: Width of the visualization canvas in pixels
         height: Height of the visualization canvas in pixels
-        
+
     Example:
         >>> from grai.core.parser.yaml_parser import load_project
         >>> project = load_project(Path("."))
@@ -42,11 +42,11 @@ def generate_d3_visualization(
     graph = build_lineage_graph(project)
     graph_data = export_lineage_to_dict(graph)
     stats = get_lineage_statistics(graph)
-    
+
     # Use project name as default title
     if title is None:
         title = project.name
-    
+
     # Generate HTML with embedded D3.js visualization
     html_content = _generate_d3_html(
         title=title,
@@ -55,10 +55,10 @@ def generate_d3_visualization(
         width=width,
         height=height,
     )
-    
+
     # Write to file
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(html_content, encoding='utf-8')
+    output_path.write_text(html_content, encoding="utf-8")
 
 
 def generate_cytoscape_visualization(
@@ -70,16 +70,16 @@ def generate_cytoscape_visualization(
 ) -> None:
     """
     Generate interactive Cytoscape.js visualization of the knowledge graph.
-    
+
     Creates an HTML file with an interactive graph using Cytoscape.js.
-    
+
     Args:
         project: The Project to visualize
         output_path: Path to save the HTML file
         title: Optional title for the visualization (defaults to project name)
         width: Width of the visualization canvas in pixels
         height: Height of the visualization canvas in pixels
-        
+
     Example:
         >>> from grai.core.parser.yaml_parser import load_project
         >>> project = load_project(Path("."))
@@ -89,11 +89,11 @@ def generate_cytoscape_visualization(
     graph = build_lineage_graph(project)
     graph_data = export_lineage_to_dict(graph)
     stats = get_lineage_statistics(graph)
-    
+
     # Use project name as default title
     if title is None:
         title = project.name
-    
+
     # Generate HTML with embedded Cytoscape.js visualization
     html_content = _generate_cytoscape_html(
         title=title,
@@ -102,10 +102,10 @@ def generate_cytoscape_visualization(
         width=width,
         height=height,
     )
-    
+
     # Write to file
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(html_content, encoding='utf-8')
+    output_path.write_text(html_content, encoding="utf-8")
 
 
 def _generate_d3_html(
@@ -116,29 +116,34 @@ def _generate_d3_html(
     height: int,
 ) -> str:
     """Generate HTML with D3.js force-directed graph."""
-    
+
     # Convert graph data to D3 format
     nodes = []
     links = []
-    
+
     for node in graph_data["nodes"]:
-        nodes.append({
-            "id": node["id"],
-            "name": node["name"],
-            "type": node["type"],
-        })
-    
+        nodes.append(
+            {
+                "id": node["id"],
+                "name": node["name"],
+                "type": node["type"],
+            }
+        )
+
     for edge in graph_data["edges"]:
-        links.append({
-            "source": edge["from"],
-            "target": edge["to"],
-            "type": edge["type"],
-        })
-    
+        links.append(
+            {
+                "source": edge["from"],
+                "target": edge["to"],
+                "type": edge["type"],
+            }
+        )
+
     import json
+
     nodes_json = json.dumps(nodes)
     links_json = json.dumps(links)
-    
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -409,31 +414,36 @@ def _generate_cytoscape_html(
     height: int,
 ) -> str:
     """Generate HTML with Cytoscape.js graph."""
-    
+
     # Convert graph data to Cytoscape format
     elements = []
-    
+
     for node in graph_data["nodes"]:
-        elements.append({
-            "data": {
-                "id": node["id"],
-                "label": node["name"],
-                "type": node["type"],
+        elements.append(
+            {
+                "data": {
+                    "id": node["id"],
+                    "label": node["name"],
+                    "type": node["type"],
+                }
             }
-        })
-    
+        )
+
     for edge in graph_data["edges"]:
-        elements.append({
-            "data": {
-                "source": edge["from"],
-                "target": edge["to"],
-                "label": edge["type"],
+        elements.append(
+            {
+                "data": {
+                    "source": edge["from"],
+                    "target": edge["to"],
+                    "label": edge["type"],
+                }
             }
-        })
-    
+        )
+
     import json
+
     elements_json = json.dumps(elements)
-    
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -48,9 +48,7 @@ def get_cypher_property_placeholder(prop_name: str, use_row: bool = True) -> str
 
 
 def compile_property_set(
-    properties: List[Property], 
-    node_var: str = "n",
-    indent: str = "    "
+    properties: List[Property], node_var: str = "n", indent: str = "    "
 ) -> str:
     """
     Compile property SET clause for Cypher.
@@ -193,9 +191,13 @@ def compile_project(
 
     # Add constraints (unique constraints on entity keys)
     if include_constraints and project.entities:
-        lines.append("// =============================================================================")
+        lines.append(
+            "// ============================================================================="
+        )
         lines.append("// CONSTRAINTS")
-        lines.append("// =============================================================================")
+        lines.append(
+            "// ============================================================================="
+        )
         lines.append("")
 
         for entity in project.entities:
@@ -211,9 +213,13 @@ def compile_project(
 
     # Add entities
     if project.entities:
-        lines.append("// =============================================================================")
+        lines.append(
+            "// ============================================================================="
+        )
         lines.append("// ENTITIES (NODES)")
-        lines.append("// =============================================================================")
+        lines.append(
+            "// ============================================================================="
+        )
         lines.append("")
 
         for entity in project.entities:
@@ -222,9 +228,13 @@ def compile_project(
 
     # Add relations
     if project.relations:
-        lines.append("// =============================================================================")
+        lines.append(
+            "// ============================================================================="
+        )
         lines.append("// RELATIONS (EDGES)")
-        lines.append("// =============================================================================")
+        lines.append(
+            "// ============================================================================="
+        )
         lines.append("")
 
         for relation in project.relations:

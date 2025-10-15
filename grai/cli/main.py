@@ -70,7 +70,7 @@ def main(
 ):
     """
     grai.build - Declarative knowledge graph modeling.
-    
+
     Define entities and relations in YAML, validate schemas,
     compile to Cypher, and load into Neo4j.
     """
@@ -98,39 +98,39 @@ def init(
 ):
     """
     Initialize a new grai.build project in the current directory.
-    
+
     Creates a starter project with example entities and relations.
     Initializes in the current directory by default (like git init, npm init).
-    
+
     Examples:
         grai init                    # Initialize in current directory
         grai init --name my-graph    # Initialize with custom project name
         grai init /path/to/project   # Initialize in specific directory
     """
     project_dir = path.resolve()
-    
+
     # Infer project name from directory if not provided
     if name is None:
         name = project_dir.name
         if name == ".":
             name = "my-knowledge-graph"
-    
+
     console.print(f"\n[bold cyan]🚀 Initializing grai.build project: {name}[/bold cyan]\n")
-    
+
     # Check if grai.yml already exists (not the directory itself)
     grai_yml_path = project_dir / "grai.yml"
     if grai_yml_path.exists() and not force:
         console.print(f"[red]✗ Project already initialized (grai.yml exists)[/red]")
         console.print("[yellow]Use --force to overwrite existing files[/yellow]")
         raise typer.Exit(code=1)
-    
+
     # Create directory structure
     try:
         project_dir.mkdir(parents=True, exist_ok=True)
         (project_dir / "entities").mkdir(exist_ok=True)
         (project_dir / "relations").mkdir(exist_ok=True)
         (project_dir / "target" / "neo4j").mkdir(parents=True, exist_ok=True)
-        
+
         # Create grai.yml
         grai_yml = f"""name: {name}
 version: 1.0.0
@@ -148,7 +148,7 @@ description: A knowledge graph project built with grai.build
 #   password: password
 """
         (project_dir / "grai.yml").write_text(grai_yml)
-        
+
         # Create example entity
         customer_yml = """entity: customer
 source: analytics.customers
@@ -170,7 +170,7 @@ properties:
     description: Account creation timestamp
 """
         (project_dir / "entities" / "customer.yml").write_text(customer_yml)
-        
+
         # Create example entity
         product_yml = """entity: product
 source: analytics.products
@@ -192,7 +192,7 @@ properties:
     description: Product price
 """
         (project_dir / "entities" / "product.yml").write_text(product_yml)
-        
+
         # Create example relation
         purchased_yml = """relation: PURCHASED
 from: customer
@@ -217,10 +217,10 @@ properties:
     description: Total order amount
 """
         (project_dir / "relations" / "purchased.yml").write_text(purchased_yml)
-        
+
         # Create data directory for CSV files
         (project_dir / "data").mkdir(exist_ok=True)
-        
+
         # Create sample CSV for customers
         customer_csv = """customer_id,name,email,created_at
 C001,Alice Johnson,alice@example.com,2024-01-15T10:30:00Z
@@ -230,7 +230,7 @@ C004,David Brown,david@example.com,2024-02-10T16:20:00Z
 C005,Emma Davis,emma@example.com,2024-02-15T11:00:00Z
 """
         (project_dir / "data" / "customers.csv").write_text(customer_csv)
-        
+
         # Create sample CSV for products
         product_csv = """product_id,name,category,price
 P001,Laptop Pro 15,Electronics,1299.99
@@ -241,7 +241,7 @@ P005,Keyboard Mechanical,Accessories,129.99
 P006,Webcam HD,Electronics,79.99
 """
         (project_dir / "data" / "products.csv").write_text(product_csv)
-        
+
         # Create sample CSV for purchases
         purchased_csv = """customer_id,product_id,order_id,order_date,quantity,total_amount
 C001,P001,O001,2024-03-01,1,1299.99
@@ -256,13 +256,13 @@ C005,P005,O009,2024-03-20,1,129.99
 C005,P003,O010,2024-03-20,2,99.98
 """
         (project_dir / "data" / "purchased.csv").write_text(purchased_csv)
-        
+
         # Create Cypher script for loading data
         # Get absolute path to data directory for LOAD CSV
         # Convert to file:// URL properly (file:// + absolute path)
         data_dir_abs = (project_dir / "data").resolve()
         file_url_prefix = f"file://{data_dir_abs}"
-        
+
         load_cypher = f"""// ============================================
 // Load Sample Data from CSV Files
 // ============================================
@@ -324,7 +324,7 @@ ORDER BY p.order_date
 LIMIT 5;
 """
         (project_dir / "load_data.cypher").write_text(load_cypher)
-        
+
         # Create README
         readme = f"""# {name}
 
@@ -419,20 +419,28 @@ ORDER BY total_spent DESC
 - [Neo4j Documentation](https://neo4j.com/docs/)
 """
         (project_dir / "README.md").write_text(readme)
-        
+
         console.print("[green]✓[/green] Created project structure")
         console.print(f"[green]✓[/green] Created [cyan]grai.yml[/cyan]")
         console.print(f"[green]✓[/green] Created [cyan]entities/customer.yml[/cyan]")
         console.print(f"[green]✓[/green] Created [cyan]entities/product.yml[/cyan]")
         console.print(f"[green]✓[/green] Created [cyan]relations/purchased.yml[/cyan]")
-        console.print(f"[green]✓[/green] Created [cyan]data/customers.csv[/cyan] (5 sample customers)")
-        console.print(f"[green]✓[/green] Created [cyan]data/products.csv[/cyan] (6 sample products)")
-        console.print(f"[green]✓[/green] Created [cyan]data/purchased.csv[/cyan] (10 sample orders)")
-        console.print(f"[green]✓[/green] Created [cyan]load_data.cypher[/cyan] (data loading script)")
+        console.print(
+            f"[green]✓[/green] Created [cyan]data/customers.csv[/cyan] (5 sample customers)"
+        )
+        console.print(
+            f"[green]✓[/green] Created [cyan]data/products.csv[/cyan] (6 sample products)"
+        )
+        console.print(
+            f"[green]✓[/green] Created [cyan]data/purchased.csv[/cyan] (10 sample orders)"
+        )
+        console.print(
+            f"[green]✓[/green] Created [cyan]load_data.cypher[/cyan] (data loading script)"
+        )
         console.print(f"[green]✓[/green] Created [cyan]README.md[/cyan]")
-        
+
         console.print(f"\n[bold green]✓ Successfully initialized project: {name}[/bold green]\n")
-        
+
         # Show next steps
         next_steps = "[bold]Next Steps:[/bold]\n\n"
         if project_dir != Path(".").resolve():
@@ -446,14 +454,14 @@ ORDER BY total_spent DESC
             next_steps += f"2. grai build      # Compile to Cypher\n"
             next_steps += f"3. grai run        # Create schema in Neo4j\n"
             next_steps += f"4. Copy/paste load_data.cypher in Neo4j Browser to load data"
-        
+
         panel = Panel(
             next_steps,
             title="[bold cyan]Get Started[/bold cyan]",
             border_style="cyan",
         )
         console.print(panel)
-        
+
     except Exception as e:
         console.print(f"[red]✗ Error initializing project: {e}[/red]")
         raise typer.Exit(code=1)
@@ -480,7 +488,7 @@ def validate(
 ):
     """
     Validate entity and relation definitions.
-    
+
     Checks for:
     - Missing entity references
     - Invalid key mappings
@@ -488,45 +496,47 @@ def validate(
     - Circular dependencies
     """
     console.print(f"\n[bold cyan]🔍 Validating project...[/bold cyan]\n")
-    
+
     try:
         # Load project
         project = load_project(project_dir)
-        console.print(f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan] (v{project.version})")
+        console.print(
+            f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan] (v{project.version})"
+        )
         console.print(f"  - {len(project.entities)} entities")
         console.print(f"  - {len(project.relations)} relations\n")
-        
+
         # Validate project
         result = validate_project(project, strict=strict)
-        
+
         # Show results
         if result.valid:
             console.print("[bold green]✓ Validation passed![/bold green]\n")
-            
+
             if verbose and result.warnings:
                 console.print("[yellow]Warnings:[/yellow]")
                 for warning in result.warnings:
                     console.print(f"  [yellow]⚠[/yellow]  {warning}")
                 console.print()
-            
+
             return
         else:
             console.print("[bold red]✗ Validation failed![/bold red]\n")
-            
+
             if result.errors:
                 console.print("[red]Errors:[/red]")
                 for error in result.errors:
                     console.print(f"  [red]✗[/red]  {error}")
                 console.print()
-            
+
             if result.warnings:
                 console.print("[yellow]Warnings:[/yellow]")
                 for warning in result.warnings:
                     console.print(f"  [yellow]⚠[/yellow]  {warning}")
                 console.print()
-            
+
             raise typer.Exit(code=1)
-            
+
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
@@ -583,74 +593,78 @@ def build(
 ):
     """
     Build the project by compiling to Cypher.
-    
+
     By default, only generates schema (constraints and indexes).
     Use --with-data to include data loading statements (requires LOAD CSV context).
-    
+
     Validates the project (unless --skip-validation) and generates
     Neo4j Cypher statements in the target directory.
-    
+
     Supports incremental builds by tracking file changes.
     """
     console.print(f"\n[bold cyan]🔨 Building project...[/bold cyan]\n")
-    
+
     try:
         # Check for incremental build
         if not full:
             needs_rebuild, changes = should_rebuild(project_dir)
-            
+
             if not needs_rebuild:
                 console.print("[green]✓[/green] No changes detected, build is up to date")
                 console.print("[dim]Use --full to force a complete rebuild[/dim]")
                 return
-            
+
             if verbose:
                 total_changes = sum(len(files) for files in changes.values())
                 console.print(f"[cyan]→[/cyan] Detected {total_changes} file change(s)")
                 if changes["added"]:
                     console.print(f"  [green]+[/green] Added: {len(changes['added'])} file(s)")
                 if changes["modified"]:
-                    console.print(f"  [yellow]~[/yellow] Modified: {len(changes['modified'])} file(s)")
+                    console.print(
+                        f"  [yellow]~[/yellow] Modified: {len(changes['modified'])} file(s)"
+                    )
                 if changes["deleted"]:
                     console.print(f"  [red]-[/red] Deleted: {len(changes['deleted'])} file(s)")
                 console.print()
-        
+
         # Load project
         project = load_project(project_dir)
-        console.print(f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan] (v{project.version})")
-        
+        console.print(
+            f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan] (v{project.version})"
+        )
+
         if verbose:
             console.print(f"  - {len(project.entities)} entities")
             console.print(f"  - {len(project.relations)} relations")
-        
+
         # Validate unless skipped
         if not skip_validation:
             console.print("[cyan]→[/cyan] Validating...")
             result = validate_project(project)
-            
+
             if not result.valid:
                 console.print("[bold red]✗ Validation failed![/bold red]\n")
-                
+
                 for error in result.errors:
                     console.print(f"  [red]✗[/red]  {error}")
-                
+
                 console.print("\n[yellow]Fix validation errors before building[/yellow]")
                 console.print("[yellow]Or use --skip-validation to bypass[/yellow]")
                 raise typer.Exit(code=1)
-            
+
             console.print("[green]✓[/green] Validation passed")
-            
+
             if result.warnings and verbose:
                 for warning in result.warnings:
                     console.print(f"  [yellow]⚠[/yellow]  {warning}")
-        
+
         # Compile
         console.print("[cyan]→[/cyan] Compiling to Cypher...")
-        
+
         # Determine output directory
         if output_dir is None:
             output_dir = project_dir / "target" / "neo4j"
-        
+
         # Compile
         if schema_only:
             cypher = compile_schema_only(project)
@@ -660,39 +674,39 @@ def build(
             output_path.write_text(cypher)
         else:
             output_path = compile_and_write(project, output_dir=output_dir, filename=filename)
-        
+
         console.print(f"[green]✓[/green] Compiled successfully")
         console.print(f"[green]✓[/green] Wrote output to: [cyan]{output_path}[/cyan]")
-        
+
         # Update cache
         if not no_cache:
             console.print("[cyan]→[/cyan] Updating build cache...")
             update_cache(project_dir, project.name, project.version)
             console.print("[green]✓[/green] Cache updated")
-        
+
         # Show summary
         console.print(f"\n[bold green]✓ Build complete![/bold green]\n")
-        
+
         if verbose:
             # Count constraints and statements
             cypher_content = output_path.read_text()
             constraint_count = cypher_content.count("CREATE CONSTRAINT")
             index_count = cypher_content.count("CREATE INDEX")
             merge_count = cypher_content.count("MERGE")
-            
+
             table = Table(title="Build Summary")
             table.add_column("Metric", style="cyan")
             table.add_column("Count", style="green")
-            
+
             table.add_row("Entities", str(len(project.entities)))
             table.add_row("Relations", str(len(project.relations)))
             table.add_row("Constraints", str(constraint_count))
             table.add_row("Indexes", str(index_count))
             table.add_row("Statements", str(merge_count))
-            
+
             console.print(table)
             console.print()
-        
+
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
@@ -705,25 +719,25 @@ def build(
 def _load_csv_data(driver, project_dir: Path, database: str, verbose: bool = False) -> bool:
     """
     Load CSV data from data/ directory if it exists.
-    
+
     Reads CSV files and executes parameterized Cypher queries.
     Returns True if data was loaded successfully, False otherwise.
     """
     import csv
     from grai.core.loader import execute_cypher
-    
+
     data_dir = project_dir / "data"
-    
+
     if not data_dir.exists():
         return False
-    
+
     try:
         total_records = 0
-        
+
         # Load customers
         customers_csv = data_dir / "customers.csv"
         if customers_csv.exists():
-            with open(customers_csv, 'r') as f:
+            with open(customers_csv, "r") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     cypher = """
@@ -735,11 +749,11 @@ def _load_csv_data(driver, project_dir: Path, database: str, verbose: bool = Fal
                     result = execute_cypher(driver, cypher, parameters=row, database=database)
                     if result.success:
                         total_records += result.records_affected
-        
+
         # Load products
         products_csv = data_dir / "products.csv"
         if products_csv.exists():
-            with open(products_csv, 'r') as f:
+            with open(products_csv, "r") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     cypher = """
@@ -751,11 +765,11 @@ def _load_csv_data(driver, project_dir: Path, database: str, verbose: bool = Fal
                     result = execute_cypher(driver, cypher, parameters=row, database=database)
                     if result.success:
                         total_records += result.records_affected
-        
+
         # Load purchases
         purchased_csv = data_dir / "purchased.csv"
         if purchased_csv.exists():
-            with open(purchased_csv, 'r') as f:
+            with open(purchased_csv, "r") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     cypher = """
@@ -770,11 +784,11 @@ def _load_csv_data(driver, project_dir: Path, database: str, verbose: bool = Fal
                     result = execute_cypher(driver, cypher, parameters=row, database=database)
                     if result.success:
                         total_records += result.records_affected
-        
+
         console.print(f"[green]✓[/green] CSV data loaded successfully")
         console.print(f"  Records affected: {total_records}")
         return True
-        
+
     except Exception as e:
         console.print(f"[red]✗[/red] Error loading CSV data: {e}")
         return False
@@ -795,7 +809,7 @@ def compile(
 ):
     """
     Compile project to Cypher (alias for 'build --skip-validation').
-    
+
     Compiles without validation. Use 'build' for validation + compilation.
     """
     # Call build with skip_validation=True
@@ -875,19 +889,25 @@ def run(
 ):
     """
     Execute compiled Cypher against Neo4j database.
-    
+
     By default, only creates the schema (constraints and indexes).
     Use --with-data to also execute data loading statements (requires LOAD CSV context).
-    
+
     Builds the project (unless --skip-build) and executes the
     generated Cypher statements against a Neo4j database.
     """
-    from grai.core.loader import connect_neo4j, execute_cypher_file, verify_connection, close_connection, get_database_info
-    
+    from grai.core.loader import (
+        connect_neo4j,
+        execute_cypher_file,
+        verify_connection,
+        close_connection,
+        get_database_info,
+    )
+
     console.print(f"\n[bold cyan]🚀 Running project against Neo4j...[/bold cyan]\n")
-    
+
     driver = None
-    
+
     try:
         # Build project first (unless skipped)
         if not skip_build:
@@ -901,16 +921,16 @@ def run(
                 verbose=False,
             )
             console.print()
-        
+
         # Determine Cypher file
         if cypher_file is None:
             cypher_file = project_dir / "target" / "neo4j" / "compiled.cypher"
-        
+
         if not cypher_file.exists():
             console.print(f"[red]✗ Cypher file not found: {cypher_file}[/red]")
             console.print("[yellow]Hint: Run 'grai build' first[/yellow]")
             raise typer.Exit(code=1)
-        
+
         # Show dry run info
         if dry_run:
             console.print("[yellow]🔍 Dry run mode - showing what would be executed[/yellow]\n")
@@ -919,23 +939,23 @@ def run(
             console.print(f"  User: {user}")
             console.print(f"  Database: {database}")
             console.print(f"\n[cyan]Cypher file:[/cyan] {cypher_file}\n")
-            
+
             # Show first few lines of Cypher
             cypher_content = cypher_file.read_text()
             lines = cypher_content.split("\n")[:20]
             console.print("[cyan]First 20 lines of Cypher:[/cyan]")
             for line in lines:
                 console.print(f"  {line}")
-            
+
             if len(cypher_content.split("\n")) > 20:
                 console.print("  ...")
-            
+
             console.print(f"\n[yellow]ℹ️  Run without --dry-run to execute[/yellow]")
             return
-        
+
         # Connect to Neo4j
         console.print(f"[cyan]→[/cyan] Connecting to Neo4j at {uri}...")
-        
+
         try:
             driver = connect_neo4j(
                 uri=uri,
@@ -950,14 +970,14 @@ def run(
             console.print("  2. Verify the URI is correct")
             console.print("  3. Check username and password")
             raise typer.Exit(code=1)
-        
+
         console.print("[green]✓[/green] Connected to Neo4j")
-        
+
         # Verify connection
         if not verify_connection(driver, database):
             console.print(f"[red]✗ Cannot access database: {database}[/red]")
             raise typer.Exit(code=1)
-        
+
         # Get database info before execution
         if verbose:
             console.print("\n[cyan]Database info (before execution):[/cyan]")
@@ -966,26 +986,28 @@ def run(
             console.print(f"  Relationships: {info.get('relationship_count', 0)}")
             console.print(f"  Labels: {', '.join(info.get('labels', []))}")
             console.print()
-        
+
         # Execute Cypher
         console.print(f"[cyan]→[/cyan] Executing Cypher from {cypher_file.name}...")
-        
+
         result = execute_cypher_file(driver, cypher_file, database=database)
-        
+
         if result.success:
             console.print("[green]✓[/green] Execution successful")
             console.print(f"  Statements executed: {result.statements_executed}")
             console.print(f"  Records affected: {result.records_affected}")
             console.print(f"  Execution time: {result.execution_time:.2f}s")
-            
+
             # Load CSV data if requested
             if load_csv:
                 console.print(f"\n[cyan]→[/cyan] Loading CSV data...")
                 csv_result = _load_csv_data(driver, project_dir, database, verbose)
-                
+
                 if not csv_result:
-                    console.print("[yellow]⚠  No CSV data loaded (load_data.cypher not found or failed)[/yellow]")
-            
+                    console.print(
+                        "[yellow]⚠  No CSV data loaded (load_data.cypher not found or failed)[/yellow]"
+                    )
+
             # Get database info after execution
             if verbose:
                 console.print("\n[cyan]Database info (after execution):[/cyan]")
@@ -993,17 +1015,17 @@ def run(
                 console.print(f"  Nodes: {info.get('node_count', 0)}")
                 console.print(f"  Relationships: {info.get('relationship_count', 0)}")
                 console.print(f"  Labels: {', '.join(info.get('labels', []))}")
-            
+
             console.print(f"\n[bold green]✓ Successfully loaded data into Neo4j![/bold green]\n")
         else:
             console.print("[bold red]✗ Execution failed![/bold red]\n")
-            
+
             for error in result.errors:
                 console.print(f"  [red]✗[/red]  {error}")
-            
+
             console.print()
             raise typer.Exit(code=1)
-    
+
     except typer.Exit:
         raise
     except KeyboardInterrupt:
@@ -1049,47 +1071,50 @@ def export(
 ):
     """
     Export project to Graph IR (Intermediate Representation).
-    
+
     Generates a JSON representation of the complete graph structure
     including entities, relations, properties, and metadata.
     """
     from grai.core.exporter import export_to_json, write_ir_file
-    
+
     console.print(f"\n[bold cyan]📤 Exporting project to Graph IR...[/bold cyan]\n")
-    
+
     try:
         # Load project
         project = load_project(project_dir)
-        console.print(f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan] (v{project.version})")
-        
+        console.print(
+            f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan] (v{project.version})"
+        )
+
         # Determine output path
         if output is None:
             output = project_dir / "graph-ir.json"
-        
+
         # Validate format
         if format.lower() != "json":
             console.print(f"[red]✗ Unsupported format: {format}[/red]")
             console.print("[yellow]Currently only 'json' format is supported[/yellow]")
             raise typer.Exit(code=1)
-        
+
         # Export to file
         console.print(f"[cyan]→[/cyan] Exporting to {output}...")
         write_ir_file(project, output, pretty=pretty, indent=indent)
-        
+
         # Show statistics
         from grai.core.exporter import export_to_ir
+
         ir = export_to_ir(project)
         stats = ir["statistics"]
-        
+
         console.print(f"[green]✓[/green] Export complete!")
         console.print(f"\n[cyan]Statistics:[/cyan]")
         console.print(f"  Entities: {stats['entity_count']}")
         console.print(f"  Relations: {stats['relation_count']}")
         console.print(f"  Total Properties: {stats['total_properties']}")
         console.print(f"  File size: {output.stat().st_size:,} bytes")
-        
+
         console.print(f"\n[bold green]✓ Graph IR exported to: {output}[/bold green]\n")
-    
+
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
@@ -1110,31 +1135,31 @@ def info(
     Show project information and statistics.
     """
     console.print(f"\n[bold cyan]📊 Project Information[/bold cyan]\n")
-    
+
     try:
         # Load project
         project = load_project(project_dir)
-        
+
         # Create info table
         table = Table(title=f"Project: {project.name}", show_header=False)
         table.add_column("Property", style="cyan", width=20)
         table.add_column("Value", style="white")
-        
+
         table.add_row("Name", project.name)
         table.add_row("Version", project.version)
         table.add_row("Entities", str(len(project.entities)))
         table.add_row("Relations", str(len(project.relations)))
-        
+
         # Count total properties
         total_entity_props = sum(len(e.properties) for e in project.entities)
         total_relation_props = sum(len(r.properties) for r in project.relations)
-        
+
         table.add_row("Entity Properties", str(total_entity_props))
         table.add_row("Relation Properties", str(total_relation_props))
-        
+
         console.print(table)
         console.print()
-        
+
         # Show entities
         if project.entities:
             entity_table = Table(title="Entities")
@@ -1142,7 +1167,7 @@ def info(
             entity_table.add_column("Source", style="white")
             entity_table.add_column("Keys", style="yellow")
             entity_table.add_column("Properties", style="green")
-            
+
             for entity in project.entities:
                 entity_table.add_row(
                     entity.entity,
@@ -1150,10 +1175,10 @@ def info(
                     ", ".join(entity.keys),
                     str(len(entity.properties)),
                 )
-            
+
             console.print(entity_table)
             console.print()
-        
+
         # Show relations
         if project.relations:
             relation_table = Table(title="Relations")
@@ -1161,7 +1186,7 @@ def info(
             relation_table.add_column("From → To", style="white")
             relation_table.add_column("Source", style="white")
             relation_table.add_column("Properties", style="green")
-            
+
             for relation in project.relations:
                 relation_table.add_row(
                     relation.relation,
@@ -1169,10 +1194,10 @@ def info(
                     relation.source,
                     str(len(relation.properties)),
                 )
-            
+
             console.print(relation_table)
             console.print()
-        
+
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
@@ -1203,11 +1228,11 @@ def cache(
 ):
     """
     Manage build cache for incremental builds.
-    
+
     View cache information or clear cached build data.
     """
     console.print(f"\n[bold cyan]💾 Build Cache Management[/bold cyan]\n")
-    
+
     try:
         if clear:
             # Clear cache
@@ -1216,15 +1241,15 @@ def cache(
             else:
                 console.print("[yellow]⚠[/yellow] No cache found")
             return
-        
+
         # Load and show cache info
         build_cache = load_cache(project_dir)
-        
+
         if build_cache is None:
             console.print("[yellow]⚠[/yellow] No cache found")
             console.print("[dim]Run 'grai build' to create cache[/dim]")
             return
-        
+
         # Show cache summary
         console.print(f"[cyan]Project:[/cyan] {build_cache.project_name or 'Unknown'}")
         console.print(f"[cyan]Version:[/cyan] {build_cache.project_version or 'Unknown'}")
@@ -1232,7 +1257,7 @@ def cache(
         console.print(f"[cyan]Updated:[/cyan] {build_cache.last_updated}")
         console.print(f"[cyan]Cached files:[/cyan] {len(build_cache.entries)}")
         console.print()
-        
+
         if show and build_cache.entries:
             # Show detailed cache entries
             table = Table(title="Cached Files")
@@ -1240,47 +1265,48 @@ def cache(
             table.add_column("Hash", style="white")
             table.add_column("Size", style="green")
             table.add_column("Modified", style="yellow")
-            
+
             for path, entry in sorted(build_cache.entries.items()):
                 # Format size
                 size_kb = entry.size / 1024
                 size_str = f"{size_kb:.1f} KB" if size_kb > 1 else f"{entry.size} B"
-                
+
                 # Truncate hash for display
                 short_hash = entry.hash[:12] + "..."
-                
+
                 # Format timestamp
                 try:
                     from datetime import datetime
+
                     dt = datetime.fromisoformat(entry.last_modified.replace("Z", "+00:00"))
                     time_str = dt.strftime("%Y-%m-%d %H:%M")
                 except:
                     time_str = entry.last_modified[:16]
-                
+
                 table.add_row(path, short_hash, size_str, time_str)
-            
+
             console.print(table)
             console.print()
-        
+
         # Check for changes
         needs_rebuild, changes = should_rebuild(project_dir, build_cache)
-        
+
         if needs_rebuild:
             total_changes = sum(len(files) for files in changes.values())
             console.print(f"[yellow]⚠[/yellow] {total_changes} file(s) changed since last build")
-            
+
             if changes["added"]:
                 console.print(f"  [green]+[/green] Added: {len(changes['added'])} file(s)")
                 if show:
                     for file in sorted(changes["added"]):
                         console.print(f"    - {file.relative_to(project_dir)}")
-            
+
             if changes["modified"]:
                 console.print(f"  [yellow]~[/yellow] Modified: {len(changes['modified'])} file(s)")
                 if show:
                     for file in sorted(changes["modified"]):
                         console.print(f"    - {file.relative_to(project_dir)}")
-            
+
             if changes["deleted"]:
                 console.print(f"  [red]-[/red] Deleted: {len(changes['deleted'])} file(s)")
                 if show:
@@ -1288,7 +1314,7 @@ def cache(
                         console.print(f"    - {file.relative_to(project_dir)}")
         else:
             console.print("[green]✓[/green] Build is up to date")
-        
+
     except Exception as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         raise typer.Exit(code=1)
@@ -1339,33 +1365,35 @@ def lineage(
 ):
     """
     Analyze lineage and dependencies in the knowledge graph.
-    
+
     Track entity relationships, calculate impact, and visualize dependencies.
     """
     console.print(f"\n[bold cyan]🔍 Lineage Analysis[/bold cyan]\n")
-    
+
     try:
         # Load project
         project = load_project(project_dir)
         console.print(f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan]")
-        
+
         # Build lineage graph
         console.print("[cyan]→[/cyan] Building lineage graph...")
         graph = build_lineage_graph(project)
-        console.print(f"[green]✓[/green] Built graph with {len(graph.nodes)} nodes and {len(graph.edges)} edges")
-        
+        console.print(
+            f"[green]✓[/green] Built graph with {len(graph.nodes)} nodes and {len(graph.edges)} edges"
+        )
+
         # Show entity lineage
         if entity:
             console.print(f"\n[bold]Entity Lineage: {entity}[/bold]\n")
             lineage = get_entity_lineage(graph, entity)
-            
+
             if "error" in lineage:
                 console.print(f"[red]✗ {lineage['error']}[/red]")
                 raise typer.Exit(code=1)
-            
+
             # Show source
             console.print(f"[cyan]Source:[/cyan] {lineage['source']}")
-            
+
             # Show upstream
             if lineage["upstream"]:
                 console.print(f"\n[cyan]Upstream ({len(lineage['upstream'])}):[/cyan]")
@@ -1373,7 +1401,7 @@ def lineage(
                     console.print(f"  ← {up['node']} ({up['type']}) via {up['relation']}")
             else:
                 console.print("\n[dim]No upstream dependencies[/dim]")
-            
+
             # Show downstream
             if lineage["downstream"]:
                 console.print(f"\n[cyan]Downstream ({len(lineage['downstream'])}):[/cyan]")
@@ -1381,41 +1409,43 @@ def lineage(
                     console.print(f"  → {down['node']} ({down['type']}) via {down['relation']}")
             else:
                 console.print("\n[dim]No downstream dependencies[/dim]")
-        
+
         # Show relation lineage
         elif relation:
             console.print(f"\n[bold]Relation Lineage: {relation}[/bold]\n")
             lineage = get_relation_lineage(graph, relation)
-            
+
             if "error" in lineage:
                 console.print(f"[red]✗ {lineage['error']}[/red]")
                 raise typer.Exit(code=1)
-            
+
             # Show connection
-            console.print(f"[cyan]Connects:[/cyan] {lineage['from_entity']} → {lineage['to_entity']}")
+            console.print(
+                f"[cyan]Connects:[/cyan] {lineage['from_entity']} → {lineage['to_entity']}"
+            )
             console.print(f"[cyan]Source:[/cyan] {lineage['source']}")
-            
+
             # Show upstream
             if lineage["upstream"]:
                 console.print(f"\n[cyan]Upstream ({len(lineage['upstream'])}):[/cyan]")
                 for up in lineage["upstream"]:
                     console.print(f"  ← {up['node']} ({up['type']}) via {up['relation']}")
-            
+
             # Show downstream
             if lineage["downstream"]:
                 console.print(f"\n[cyan]Downstream ({len(lineage['downstream'])}):[/cyan]")
                 for down in lineage["downstream"]:
                     console.print(f"  → {down['node']} ({down['type']}) via {down['relation']}")
-        
+
         # Calculate impact
         elif impact:
             console.print(f"\n[bold]Impact Analysis: {impact}[/bold]\n")
             analysis = calculate_impact_analysis(graph, impact)
-            
+
             if "error" in analysis:
                 console.print(f"[red]✗ {analysis['error']}[/red]")
                 raise typer.Exit(code=1)
-            
+
             # Show impact score
             level_color = {
                 "none": "dim",
@@ -1424,28 +1454,34 @@ def lineage(
                 "high": "red",
             }
             color = level_color.get(analysis["impact_level"], "white")
-            
+
             console.print(f"[cyan]Impact Score:[/cyan] {analysis['impact_score']}")
-            console.print(f"[cyan]Impact Level:[/cyan] [{color}]{analysis['impact_level'].upper()}[/{color}]")
-            
+            console.print(
+                f"[cyan]Impact Level:[/cyan] [{color}]{analysis['impact_level'].upper()}[/{color}]"
+            )
+
             # Show affected entities
             if analysis["affected_entities"]:
-                console.print(f"\n[cyan]Affected Entities ({len(analysis['affected_entities'])}):[/cyan]")
+                console.print(
+                    f"\n[cyan]Affected Entities ({len(analysis['affected_entities'])}):[/cyan]"
+                )
                 for ent in analysis["affected_entities"]:
                     console.print(f"  • {ent}")
             else:
                 console.print("\n[dim]No affected entities[/dim]")
-            
+
             # Show affected relations
             if analysis["affected_relations"]:
-                console.print(f"\n[cyan]Affected Relations ({len(analysis['affected_relations'])}):[/cyan]")
+                console.print(
+                    f"\n[cyan]Affected Relations ({len(analysis['affected_relations'])}):[/cyan]"
+                )
                 for rel in analysis["affected_relations"]:
                     console.print(f"  • {rel}")
-        
+
         # Generate visualization
         elif visualize:
             console.print(f"\n[bold]Generating {visualize.upper()} visualization...[/bold]\n")
-            
+
             if visualize.lower() == "mermaid":
                 diagram = visualize_lineage_mermaid(graph, focus_entity=focus)
             elif visualize.lower() == "graphviz" or visualize.lower() == "dot":
@@ -1454,7 +1490,7 @@ def lineage(
                 console.print(f"[red]✗ Unknown visualization format: {visualize}[/red]")
                 console.print("[yellow]Use 'mermaid' or 'graphviz'[/yellow]")
                 raise typer.Exit(code=1)
-            
+
             # Save to file or print
             if output:
                 output.parent.mkdir(parents=True, exist_ok=True)
@@ -1462,16 +1498,16 @@ def lineage(
                 console.print(f"[green]✓[/green] Wrote visualization to: [cyan]{output}[/cyan]")
             else:
                 console.print(diagram)
-        
+
         # Show general statistics
         else:
             console.print("\n[bold]Lineage Statistics[/bold]\n")
             stats = get_lineage_statistics(graph)
-            
+
             table = Table()
             table.add_column("Metric", style="cyan")
             table.add_column("Value", style="white")
-            
+
             table.add_row("Total Nodes", str(stats["total_nodes"]))
             table.add_row("Total Edges", str(stats["total_edges"]))
             table.add_row("Entities", str(stats["entity_count"]))
@@ -1480,12 +1516,14 @@ def lineage(
             table.add_row("Max Downstream", str(stats["max_downstream_connections"]))
             if stats["most_connected_entity"]:
                 table.add_row("Most Connected", stats["most_connected_entity"])
-            
+
             console.print(table)
             console.print()
-            
-            console.print("[dim]Use --entity, --relation, --impact, or --visualize for detailed analysis[/dim]")
-        
+
+            console.print(
+                "[dim]Use --entity, --relation, --impact, or --visualize for detailed analysis[/dim]"
+            )
+
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
@@ -1539,20 +1577,20 @@ def visualize(
 ):
     """
     Generate interactive HTML visualization of the knowledge graph.
-    
+
     Creates an interactive web-based visualization using D3.js or Cytoscape.js.
     The resulting HTML file can be opened in any modern web browser.
     """
     console.print(f"\n[bold cyan]🎨 Generating Interactive Visualization[/bold cyan]\n")
-    
+
     try:
         # Load project
         project = load_project(project_dir)
         console.print(f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan]")
-        
+
         # Generate visualization based on format
         console.print(f"[cyan]→[/cyan] Generating {format.upper()} visualization...")
-        
+
         if format.lower() == "d3":
             generate_d3_visualization(
                 project=project,
@@ -1573,18 +1611,21 @@ def visualize(
             console.print(f"[red]✗ Unknown format: {format}[/red]")
             console.print("[yellow]Supported formats: d3, cytoscape[/yellow]")
             raise typer.Exit(code=1)
-        
+
         console.print(f"[green]✓[/green] Generated visualization: [cyan]{output}[/cyan]")
         console.print(f"[dim]   Size: {output.stat().st_size:,} bytes[/dim]")
         console.print()
-        console.print("[bold]📱 Open the HTML file in your browser to view the interactive graph![/bold]")
-        
+        console.print(
+            "[bold]📱 Open the HTML file in your browser to view the interactive graph![/bold]"
+        )
+
         # Optionally open in browser
         if open_browser:
             import webbrowser
+
             console.print(f"[cyan]→[/cyan] Opening in browser...")
             webbrowser.open(f"file://{output.absolute()}")
-        
+
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
@@ -1626,14 +1667,14 @@ def docs(
 ):
     """
     Generate and serve interactive documentation for your knowledge graph.
-    
+
     Similar to 'dbt docs generate/serve', this command creates comprehensive
     HTML documentation including:
     - Entity and relation catalogs
     - Interactive graph visualization
     - Lineage diagrams
     - Searchable property reference
-    
+
     Examples:
         grai docs                      # Generate docs in target/docs
         grai docs --serve              # Generate and serve on http://localhost:8080
@@ -1646,46 +1687,47 @@ def docs(
     import http.server
     import socketserver
     import threading
-    
+
     console.print(f"\n[bold cyan]📚 Generating Knowledge Graph Documentation[/bold cyan]\n")
-    
+
     try:
         # Load project
         project = load_project(project_dir)
         console.print(f"[green]✓[/green] Loaded project: [cyan]{project.name}[/cyan]")
         console.print(f"  - {len(project.entities)} entities")
         console.print(f"  - {len(project.relations)} relations")
-        
+
         # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Export project data as JSON
         console.print(f"\n[cyan]→[/cyan] Exporting project data...")
         ir_data = export_to_json(project, pretty=False)
-        
+
         # Generate main documentation HTML
         console.print(f"[cyan]→[/cyan] Generating documentation pages...")
-        
+
         # Create index.html
         index_html = _generate_docs_index_html(project, ir_data)
         index_path = output_dir / "index.html"
         index_path.write_text(index_html)
         console.print(f"[green]✓[/green] Created index.html")
-        
+
         # Create entity catalog page
         entities_html = _generate_entity_catalog_html(project)
         entities_path = output_dir / "entities.html"
         entities_path.write_text(entities_html)
         console.print(f"[green]✓[/green] Created entities.html")
-        
+
         # Create relation catalog page
         relations_html = _generate_relation_catalog_html(project)
         relations_path = output_dir / "relations.html"
         relations_path.write_text(relations_html)
         console.print(f"[green]✓[/green] Created relations.html")
-        
+
         # Create graph visualization page
         from grai.core.visualizer import generate_d3_visualization
+
         viz_path = output_dir / "graph.html"
         generate_d3_visualization(
             project=project,
@@ -1695,55 +1737,63 @@ def docs(
             height=900,
         )
         console.print(f"[green]✓[/green] Created graph.html")
-        
+
         # Create lineage page
         from grai.core.lineage import build_lineage_graph, visualize_lineage_mermaid
+
         lineage_graph = build_lineage_graph(project)
         mermaid_diagram = visualize_lineage_mermaid(lineage_graph)
         lineage_html = _generate_lineage_html(project, mermaid_diagram)
         lineage_path = output_dir / "lineage.html"
         lineage_path.write_text(lineage_html)
         console.print(f"[green]✓[/green] Created lineage.html")
-        
-        console.print(f"\n[green]✓[/green] Documentation generated in: [cyan]{output_dir.absolute()}[/cyan]")
-        
+
+        console.print(
+            f"\n[green]✓[/green] Documentation generated in: [cyan]{output_dir.absolute()}[/cyan]"
+        )
+
         # Serve documentation if requested
         if serve:
             console.print(f"\n[bold cyan]🌐 Starting documentation server...[/bold cyan]\n")
-            
+
             # Change to docs directory
             import os
+
             os.chdir(output_dir.absolute())
-            
+
             # Create server
             Handler = http.server.SimpleHTTPRequestHandler
-            
+
             try:
                 with socketserver.TCPServer(("", port), Handler) as httpd:
-                    console.print(f"[green]✓[/green] Server running at: [cyan]http://localhost:{port}[/cyan]")
+                    console.print(
+                        f"[green]✓[/green] Server running at: [cyan]http://localhost:{port}[/cyan]"
+                    )
                     console.print(f"[dim]Press Ctrl+C to stop[/dim]\n")
-                    
+
                     # Open browser
                     if open_browser:
                         console.print(f"[cyan]→[/cyan] Opening in browser...")
                         webbrowser.open(f"http://localhost:{port}")
-                    
+
                     # Serve forever
                     httpd.serve_forever()
-                    
+
             except KeyboardInterrupt:
                 console.print(f"\n\n[yellow]Stopping server...[/yellow]")
             except OSError as e:
                 if "Address already in use" in str(e):
                     console.print(f"[red]✗ Port {port} is already in use[/red]")
-                    console.print(f"[yellow]Try a different port: grai docs --serve --port {port + 1}[/yellow]")
+                    console.print(
+                        f"[yellow]Try a different port: grai docs --serve --port {port + 1}[/yellow]"
+                    )
                 else:
                     raise
         else:
             console.print(f"\n[bold]💡 To view documentation:[/bold]")
             console.print(f"   Open: [cyan]file://{index_path.absolute()}[/cyan]")
             console.print(f"   Or run: [cyan]grai docs --serve[/cyan]")
-    
+
     except FileNotFoundError as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         console.print("[yellow]Hint: Run 'grai init' to create a new project[/yellow]")
@@ -1751,6 +1801,7 @@ def docs(
     except Exception as e:
         console.print(f"[red]✗ Error: {e}[/red]")
         import traceback
+
         traceback.print_exc()
         raise typer.Exit(code=1)
 
@@ -1970,11 +2021,13 @@ def _generate_entity_catalog_html(project: Project) -> str:
     """Generate entity catalog HTML page."""
     entities_html = ""
     for entity in sorted(project.entities, key=lambda e: e.entity):
-        props_html = "".join([
-            f"<tr><td><code>{p.name}</code></td><td>{p.type.value}</td><td>{'✓' if getattr(p, 'required', False) else ''}</td><td>{getattr(p, 'description', '')}</td></tr>"
-            for p in entity.properties
-        ])
-        
+        props_html = "".join(
+            [
+                f"<tr><td><code>{p.name}</code></td><td>{p.type.value}</td><td>{'✓' if getattr(p, 'required', False) else ''}</td><td>{getattr(p, 'description', '')}</td></tr>"
+                for p in entity.properties
+            ]
+        )
+
         entities_html += f"""
         <div class="entity-card">
             <h3>🔹 {entity.entity}</h3>
@@ -1999,7 +2052,7 @@ def _generate_entity_catalog_html(project: Project) -> str:
             </table>
         </div>
         """
-    
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2119,11 +2172,13 @@ def _generate_relation_catalog_html(project: Project) -> str:
     """Generate relation catalog HTML page."""
     relations_html = ""
     for relation in sorted(project.relations, key=lambda r: r.relation):
-        props_html = "".join([
-            f"<tr><td><code>{p.name}</code></td><td>{p.type.value}</td><td>{'✓' if getattr(p, 'required', False) else ''}</td><td>{getattr(p, 'description', '')}</td></tr>"
-            for p in relation.properties
-        ])
-        
+        props_html = "".join(
+            [
+                f"<tr><td><code>{p.name}</code></td><td>{p.type.value}</td><td>{'✓' if getattr(p, 'required', False) else ''}</td><td>{getattr(p, 'description', '')}</td></tr>"
+                for p in relation.properties
+            ]
+        )
+
         relations_html += f"""
         <div class="relation-card">
             <h3>🔗 {relation.relation}</h3>
@@ -2154,7 +2209,7 @@ def _generate_relation_catalog_html(project: Project) -> str:
             </table>
         </div>
         """
-    
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
