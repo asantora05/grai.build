@@ -519,3 +519,140 @@ class TestRunCommand:
         assert result.exit_code == 0
         assert "Database info" in result.stdout
         assert "Nodes:" in result.stdout
+
+
+class TestExportCommand:
+    """Test the export command."""
+
+    def test_export_to_json(self, tmp_path):
+        """Test exporting project to JSON (Graph IR)."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        output_file = tmp_path / "output.json"
+        result = runner.invoke(app, ["export", str(project_dir), "--output", str(output_file)])
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+        assert "Export complete" in result.stdout or "exported" in result.stdout.lower()
+
+    def test_export_with_pretty_format(self, tmp_path):
+        """Test export with pretty formatting."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        output_file = tmp_path / "output.json"
+        result = runner.invoke(
+            app, ["export", str(project_dir), "--output", str(output_file), "--pretty"]
+        )
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+
+    def test_export_missing_project(self, tmp_path):
+        """Test export with missing project."""
+        project_dir = tmp_path / "nonexistent"
+        output_file = tmp_path / "output.json"
+
+        result = runner.invoke(app, ["export", str(project_dir), "--output", str(output_file)])
+
+        assert result.exit_code == 1
+        assert "not found" in result.stdout.lower() or "error" in result.stdout.lower()
+
+
+class TestCacheCommand:
+    """Test the cache command."""
+
+    def test_cache_status(self, tmp_path):
+        """Test cache status display."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        result = runner.invoke(app, ["cache", str(project_dir)])
+
+        assert result.exit_code == 0
+        assert "No cache found" in result.stdout or "Cache" in result.stdout
+
+    def test_cache_show(self, tmp_path):
+        """Test cache show option."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+        runner.invoke(app, ["build", str(project_dir)])  # Creates cache
+
+        result = runner.invoke(app, ["cache", str(project_dir), "--show"])
+
+        assert result.exit_code == 0
+        assert "Cached Files" in result.stdout or "Cache" in result.stdout
+
+    def test_cache_clear(self, tmp_path):
+        """Test clearing cache."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+        runner.invoke(app, ["build", str(project_dir)])  # Creates cache
+
+        result = runner.invoke(app, ["cache", str(project_dir), "--clear"])
+
+        assert result.exit_code == 0
+        assert "cleared" in result.stdout.lower() or "removed" in result.stdout.lower()
+
+
+class TestLineageCommand:
+    """Test the lineage command."""
+
+    def test_lineage_basic(self, tmp_path):
+        """Test basic lineage display."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        result = runner.invoke(app, ["lineage", str(project_dir)])
+
+        assert result.exit_code == 0
+        assert "nodes" in result.stdout.lower() or "lineage" in result.stdout.lower()
+
+    def test_lineage_show_entity(self, tmp_path):
+        """Test showing lineage for an entity."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        result = runner.invoke(app, ["lineage", str(project_dir), "--entity", "customer"])
+
+        assert result.exit_code == 0
+        assert "customer" in result.stdout.lower()
+
+    def test_lineage_visualize_mermaid(self, tmp_path):
+        """Test generating Mermaid lineage diagram."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        output_file = tmp_path / "lineage.mmd"
+        result = runner.invoke(
+            app,
+            ["lineage", str(project_dir), "--visualize", "mermaid", "--output", str(output_file)],
+        )
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+
+    def test_lineage_visualize_graphviz(self, tmp_path):
+        """Test generating Graphviz lineage diagram."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        output_file = tmp_path / "lineage.dot"
+        result = runner.invoke(
+            app,
+            ["lineage", str(project_dir), "--visualize", "graphviz", "--output", str(output_file)],
+        )
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+
+    def test_lineage_impact(self, tmp_path):
+        """Test impact analysis."""
+        project_dir = tmp_path / "test-project"
+        runner.invoke(app, ["init", str(project_dir)])
+
+        result = runner.invoke(app, ["lineage", str(project_dir), "--impact", "customer"])
+
+        assert result.exit_code == 0
+        assert "Impact" in result.stdout or "customer" in result.stdout.lower()
