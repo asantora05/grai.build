@@ -1812,8 +1812,11 @@ def docs(
 
             os.chdir(output_dir.absolute())
 
-            # Create server
+            # Create server with address reuse enabled
             handler = http.server.SimpleHTTPRequestHandler  # noqa: N806
+
+            # Enable address reuse to avoid "Address already in use" errors
+            socketserver.TCPServer.allow_reuse_address = True
 
             try:
                 with socketserver.TCPServer(("", port), handler) as httpd:
@@ -1828,10 +1831,14 @@ def docs(
                         webbrowser.open(f"http://localhost:{port}")
 
                     # Serve forever
-                    httpd.serve_forever()
+                    try:
+                        httpd.serve_forever()
+                    except KeyboardInterrupt:
+                        console.print("\n\n[yellow]Stopping server...[/yellow]")
 
             except KeyboardInterrupt:
-                console.print("\n\n[yellow]Stopping server...[/yellow]")
+                # Catch any interrupt that happens during setup
+                console.print("\n\n[yellow]Server stopped[/yellow]")
             except OSError as e:
                 if "Address already in use" in str(e):
                     console.print(f"[red]✗ Port {port} is already in use[/red]")
@@ -2079,12 +2086,36 @@ def _generate_entity_catalog_html(project: Project) -> str:
             ]
         )
 
+        # Build source info with enhanced details if available
+        source_config = entity.get_source_config()
+        source_html = f"<div><strong>Source:</strong> <code>{source_config.name}</code>"
+        if source_config.type:
+            source_html += f" <span style='color: #667eea; font-size: 0.9em;'>({source_config.type.value})</span>"
+        source_html += "</div>"
+
+        # Add additional source metadata if present
+        source_meta_items = []
+        if source_config.database:
+            source_meta_items.append(
+                f"<div><strong>Database:</strong> <code>{source_config.database}</code></div>"
+            )
+        if source_config.db_schema:
+            source_meta_items.append(
+                f"<div><strong>Schema:</strong> <code>{source_config.db_schema}</code></div>"
+            )
+        if source_config.connection:
+            source_meta_items.append(
+                f"<div><strong>Connection:</strong> <code>{source_config.connection}</code></div>"
+            )
+        source_meta_html = "".join(source_meta_items)
+
         entities_html += f"""
         <div class="entity-card">
             <h3>🔹 {entity.entity}</h3>
             <div class="meta">
-                <div><strong>Source:</strong> <code>{entity.get_source_name()}</code></div>
+                {source_html}
                 <div><strong>Keys:</strong> <code>{', '.join(entity.keys)}</code></div>
+                {source_meta_html}
             </div>
             {f'<p class="description">{entity.description}</p>' if hasattr(entity, 'description') and entity.description else ''}
             <h4>Properties ({len(entity.properties)})</h4>
@@ -2230,6 +2261,28 @@ def _generate_relation_catalog_html(project: Project) -> str:
             ]
         )
 
+        # Build source info with enhanced details if available
+        source_config = relation.get_source_config()
+        source_html = f"<div><strong>Source:</strong> <code>{source_config.name}</code>"
+        if source_config.type:
+            source_html += f" <span style='color: #667eea; font-size: 0.9em;'>({source_config.type.value})</span>"
+        source_html += "</div>"
+
+        # Add additional source metadata if present
+        source_meta_items = []
+        if source_config.database:
+            source_meta_items.append(
+                f"<div><strong>Database:</strong> <code>{source_config.database}</code></div>"
+            )
+        if source_config.db_schema:
+            source_meta_items.append(
+                f"<div><strong>Schema:</strong> <code>{source_config.db_schema}</code></div>"
+            )
+        if source_config.connection:
+            source_meta_items.append(
+                f"<div><strong>Connection:</strong> <code>{source_config.connection}</code></div>"
+            )
+
         relations_html += f"""
         <div class="relation-card">
             <h3>🔗 {relation.relation}</h3>
@@ -2239,9 +2292,10 @@ def _generate_relation_catalog_html(project: Project) -> str:
                 <span class="entity">{relation.to_entity}</span>
             </div>
             <div class="meta">
-                <div><strong>Source:</strong> <code>{relation.get_source_name()}</code></div>
+                {source_html}
                 <div><strong>From Key:</strong> <code>{relation.mappings.from_key}</code></div>
                 <div><strong>To Key:</strong> <code>{relation.mappings.to_key}</code></div>
+                {("".join(source_meta_items))}
             </div>
             {f'<p class="description">{relation.description}</p>' if hasattr(relation, 'description') and relation.description else ''}
             <h4>Properties ({len(relation.properties)})</h4>
