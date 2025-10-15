@@ -8,4 +8,4 @@ try:
     __version__ = version("grai-build")
 except Exception:
     # Fallback for development or if package metadata is not available
-    __version__ = "0.3.0"
+    __version__ = "0.3.1"
