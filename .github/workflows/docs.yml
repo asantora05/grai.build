@@ -4,16 +4,16 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'
-      - 'README.md'
-      - 'grai/**'
+      - "docs/**"
+      - "README.md"
+      - "grai/**"
   workflow_dispatch:
 
 jobs:
   build-example-docs:
     name: Build Example Documentation
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install grai.build
         run: |
@@ -54,14 +54,14 @@ jobs:
   #   permissions:
   #     pages: write
   #     id-token: write
-  #   
+  #
   #   steps:
   #     - name: Download artifacts
   #       uses: actions/download-artifact@v4
   #       with:
   #         name: example-docs
   #         path: ./docs
-  #     
+  #
   #     - name: Deploy to GitHub Pages
   #       uses: peaceiris/actions-gh-pages@v3
   #       with:

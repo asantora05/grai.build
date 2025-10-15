@@ -162,6 +162,7 @@ git checkout -b feat/your-feature-name
 ```
 
 2. **Make your changes**
+
    - Write code
    - Add tests
    - Update documentation
@@ -237,17 +238,17 @@ Use Google-style docstrings:
 def compile_entity(entity: Entity, schema_only: bool = False) -> str:
     """
     Compile an entity into Cypher statements.
-    
+
     Args:
         entity: The entity to compile.
         schema_only: If True, only generate constraints/indexes.
-    
+
     Returns:
         str: Generated Cypher statements.
-    
+
     Raises:
         CompilerError: If entity cannot be compiled.
-    
+
     Example:
         >>> entity = Entity(name="User", keys=["id"])
         >>> cypher = compile_entity(entity, schema_only=True)
@@ -322,6 +323,7 @@ By contributing, you agree that your contributions will be licensed under the MI
 ## 🙏 Recognition
 
 Contributors will be recognized in:
+
 - GitHub contributors page
 - Release notes
 - Project README

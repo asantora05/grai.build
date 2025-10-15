@@ -3,18 +3,18 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 0.3.0)'
+        description: "Version to release (e.g., 0.3.0)"
         required: true
 
 jobs:
   test:
     name: Run Full Test Suite
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -37,7 +37,7 @@ jobs:
     name: Build Distribution
     needs: test
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install build dependencies
         run: |
@@ -72,7 +72,7 @@ jobs:
     environment:
       name: test-pypi
       url: https://test.pypi.org/project/grai-build/
-    
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -94,7 +94,7 @@ jobs:
     environment:
       name: pypi
       url: https://pypi.org/project/grai-build/
-    
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -111,7 +111,7 @@ jobs:
     name: Create GitHub Release
     needs: publish-pypi
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

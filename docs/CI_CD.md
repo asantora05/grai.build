@@ -20,22 +20,26 @@ grai.build uses GitHub Actions for continuous integration and deployment. Our pi
 **Jobs:**
 
 #### Test
+
 - Runs on Python 3.11 and 3.12
 - Executes full test suite with pytest
 - Generates coverage report
 - Uploads coverage to Codecov
 
 #### Lint
+
 - Checks code formatting with Black
 - Lints code with Ruff
 - Type checks with mypy (non-blocking)
 
 #### Validate
+
 - Builds the package
 - Validates with twine
 - Tests CLI installation and availability
 
 #### Integration
+
 - Spins up Neo4j 5.15 container
 - Tests full workflow:
   - `grai init`
@@ -46,37 +50,44 @@ grai.build uses GitHub Actions for continuous integration and deployment. Our pi
 - Verifies generated documentation files
 
 **Status Badge:**
+
 ```markdown
 ![CI](https://github.com/asantora05/grai.build/workflows/CI/badge.svg)
 ```
 
 ### 2. Release Workflow (`.github/workflows/release.yml`)
 
-**Triggers:** 
+**Triggers:**
+
 - Git tags matching `v*.*.*` (e.g., `v0.3.0`)
 - Manual workflow dispatch
 
 **Jobs:**
 
 #### Test
+
 - Runs full test suite before release
 
 #### Build
+
 - Builds source and wheel distributions
 - Validates with twine
 - Uploads artifacts
 
 #### Publish to Test PyPI
+
 - Publishes to test.pypi.org first
 - Allows verification before production
 - Uses `TEST_PYPI_API_TOKEN` secret
 
 #### Publish to PyPI
+
 - Publishes to pypi.org
 - Only runs after Test PyPI succeeds
 - Uses `PYPI_API_TOKEN` secret
 
 #### Create GitHub Release
+
 - Creates GitHub release with notes
 - Attaches distribution files
 - Auto-generates release notes
@@ -100,6 +111,7 @@ git push origin v0.3.0
 ### 3. Security Workflow (`.github/workflows/security.yml`)
 
 **Triggers:**
+
 - Push to `main`
 - Pull Requests
 - Weekly schedule (Mondays at 00:00 UTC)
@@ -107,16 +119,19 @@ git push origin v0.3.0
 **Jobs:**
 
 #### Dependency Scan
+
 - Runs `safety` check on dependencies
 - Runs `pip-audit` for known vulnerabilities
 - Continues on error (informational)
 
 #### Code Scan
+
 - Runs Bandit security scanner
 - Checks for common security issues
 - Uploads scan report as artifact
 
 #### CodeQL Analysis
+
 - GitHub's semantic code analysis
 - Scans for security vulnerabilities
 - Checks code quality issues
@@ -124,17 +139,19 @@ git push origin v0.3.0
 ### 4. Documentation Workflow (`.github/workflows/docs.yml`)
 
 **Triggers:**
+
 - Push to `main` (when docs/ or grai/ changes)
 - Manual workflow dispatch
 
 **Jobs:**
 
 #### Build Example Docs
+
 - Creates example project with `grai init`
 - Generates documentation with `grai docs`
 - Uploads as artifact
 
-*Note: GitHub Pages deployment is commented out - can be enabled when needed.*
+_Note: GitHub Pages deployment is commented out - can be enabled when needed._
 
 ## 🔐 Required Secrets
 
@@ -143,6 +160,7 @@ To enable full CI/CD, configure these secrets in GitHub Settings → Secrets and
 ### PyPI Publishing
 
 1. **`PYPI_API_TOKEN`**
+
    - Go to https://pypi.org/manage/account/token/
    - Create new API token
    - Scope: Project (grai-build)
@@ -185,6 +203,7 @@ Dependabot is configured in `.github/dependabot.yml` to automatically:
 - Automatically label and commit with conventional format
 
 **Reviewing Dependabot PRs:**
+
 1. Check CI passes
 2. Review changelog/release notes
 3. Test locally if breaking changes
@@ -195,38 +214,42 @@ Dependabot is configured in `.github/dependabot.yml` to automatically:
 ### Releasing a New Version
 
 1. **Prepare Release**
+
    ```bash
    # Update version
    vim pyproject.toml  # Change version = "0.3.0"
-   
+
    # Update CHANGELOG (if you maintain one)
    vim CHANGELOG.md
-   
+
    # Commit
    git add pyproject.toml
    git commit -m "chore: bump version to 0.3.0"
    ```
 
 2. **Tag Release**
+
    ```bash
    git tag -a v0.3.0 -m "Release v0.3.0
 
    Features:
    - Added documentation generation
    - Improved lineage tracking
-   
+
    Fixes:
    - Fixed schema-only mode
    "
    ```
 
 3. **Push Tag**
+
    ```bash
    git push origin main
    git push origin v0.3.0
    ```
 
 4. **Monitor Workflow**
+
    - Go to Actions tab
    - Watch Release workflow
    - Verify Test PyPI upload
@@ -335,15 +358,18 @@ gh run view [run-id] --log
 ### CI Failures
 
 **Tests Fail:**
+
 - Check test logs in Actions tab
 - Run tests locally: `pytest -v`
 - Check for environment differences
 
 **Linting Fails:**
+
 - Run locally: `black grai/ && ruff check grai/`
 - Fix issues and commit
 
 **Integration Tests Fail:**
+
 - Check Neo4j container logs
 - Verify connection strings
 - Test locally with Docker
@@ -351,11 +377,13 @@ gh run view [run-id] --log
 ### Release Failures
 
 **PyPI Upload Fails:**
+
 - Check API token is valid
 - Verify version doesn't already exist
 - Check package metadata with `twine check`
 
 **Tag Already Exists:**
+
 ```bash
 # Delete local tag
 git tag -d v0.3.0
