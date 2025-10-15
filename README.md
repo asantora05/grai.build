@@ -2,8 +2,11 @@
 
 > **Schema-as-code for graph databases** - Documentation like dbt, migrations for Neo4j
 
+[![CI](https://github.com/asantora05/grai.build/workflows/CI/badge.svg)](https://github.com/asantora05/grai.build/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/asantora05/grai.build/branch/main/graph/badge.svg)](https://codecov.io/gh/asantora05/grai.build)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## 📘 What is grai.build?
 
