@@ -5,6 +5,7 @@ This module provides the Typer-based command-line interface for grai.build,
 offering commands for project initialization, validation, compilation, and execution.
 """
 
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -492,21 +493,43 @@ See the project's `docs/` folder for more examples.
         )
         console.print("[green]✓[/green] Created [cyan]README.md[/cyan]")
 
+        # Create profiles.yml if it doesn't exist
+        try:
+            from grai.core.profiles import create_default_profiles_file, get_profile_path
+
+            profile_path = get_profile_path()
+            if not profile_path.exists() or force:
+                created_profile_path = create_default_profiles_file()
+                console.print(
+                    f"[green]✓[/green] Created [cyan]{created_profile_path}[/cyan] (connection profiles)"
+                )
+            else:
+                console.print(
+                    f"[yellow]•[/yellow] Profile already exists at [cyan]{profile_path}[/cyan]"
+                )
+        except Exception as e:
+            console.print(
+                f"[yellow]⚠[/yellow] Could not create profiles.yml: {e}",
+                style="yellow",
+            )
+
         console.print(f"\n[bold green]✓ Successfully initialized project: {name}[/bold green]\n")
 
         # Show next steps
         next_steps = "[bold]Next Steps:[/bold]\n\n"
         if project_dir != Path(".").resolve():
             next_steps += f"1. cd {project_dir}\n"
+            next_steps += "2. Configure ~/.grai/profiles.yml with your connections\n"
+            next_steps += "3. grai validate   # Check your definitions\n"
+            next_steps += "4. grai build      # Compile to Cypher\n"
+            next_steps += "5. grai run        # Create schema in Neo4j\n"
+            next_steps += "6. Copy/paste load_data.cypher in Neo4j Browser to load data"
+        else:
+            next_steps += "1. Configure ~/.grai/profiles.yml with your connections\n"
             next_steps += "2. grai validate   # Check your definitions\n"
             next_steps += "3. grai build      # Compile to Cypher\n"
             next_steps += "4. grai run        # Create schema in Neo4j\n"
             next_steps += "5. Copy/paste load_data.cypher in Neo4j Browser to load data"
-        else:
-            next_steps += "1. grai validate   # Check your definitions\n"
-            next_steps += "2. grai build      # Compile to Cypher\n"
-            next_steps += "3. grai run        # Create schema in Neo4j\n"
-            next_steps += "4. Copy/paste load_data.cypher in Neo4j Browser to load data"
 
         panel = Panel(
             next_steps,
@@ -2696,6 +2719,249 @@ def import_command(
 
     except Exception as e:
         console.print(f"\n[red]Error:[/red] {e}", style="red")
+        raise typer.Exit(1)
+
+
+@app.command()
+def load(
+    entity_name: str = typer.Argument(..., help="Name of the entity or relation to load data for."),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="Profile name from profiles.yml (defaults to project profile or 'default').",
+    ),
+    target: Optional[str] = typer.Option(
+        None,
+        "--target",
+        "-t",
+        help="Target name from profile (defaults to profile's default target or GRAI_TARGET).",
+    ),
+    limit: Optional[int] = typer.Option(
+        None,
+        "--limit",
+        "-l",
+        help="Maximum number of rows to load (for testing).",
+    ),
+    batch_size: int = typer.Option(
+        1000,
+        "--batch-size",
+        "-b",
+        help="Number of rows per batch.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Preview the operation without loading data.",
+    ),
+):
+    """
+    Load data from a data warehouse into Neo4j.
+
+    This command uses connection profiles from ~/.grai/profiles.yml (similar to dbt).
+    You can also override with GRAI_PROFILE and GRAI_TARGET environment variables.
+
+    Examples:
+
+        # Load using default profile and target
+        grai load customer
+
+        # Use specific profile and target
+        grai load customer --profile myproject --target prod
+
+        # Dry run to preview
+        grai load customer --dry-run
+
+        # Load with row limit for testing
+        grai load customer --limit 100
+
+        # Load relation data
+        grai load PURCHASED
+    """
+    # Check if BigQuery loader is available
+    try:
+        from grai.core.loader import (
+            BigQueryConnection,
+            load_entity_from_bigquery,
+            load_relation_from_bigquery,
+        )
+        from grai.core.profiles import (
+            BigQueryProfile,
+            get_connection_info,
+            get_profile_path,
+        )
+    except ImportError as e:
+        if "google" in str(e):
+            console.print(
+                "[red]Error:[/red] BigQuery support not installed.",
+                style="red",
+            )
+            console.print("\nInstall BigQuery dependencies with: pip install google-cloud-bigquery")
+        else:
+            console.print(f"[red]Error:[/red] {e}", style="red")
+        raise typer.Exit(1)
+
+    # Load project to get entity/relation definitions
+    try:
+        console.print("\n[bold cyan]📦 Loading grai.build project[/bold cyan]")
+        project_obj = load_project()
+        console.print(f"[green]✓[/green] Loaded project: {project_obj.name}")
+    except Exception as e:
+        console.print(f"\n[red]Error:[/red] Failed to load project: {e}", style="red")
+        console.print("\nMake sure you're in a grai.build project directory.")
+        raise typer.Exit(1)
+
+    # Determine which profile to use
+    profile_name = profile or os.getenv("GRAI_PROFILE")
+    if not profile_name and hasattr(project_obj, "profile"):
+        profile_name = project_obj.profile
+    if not profile_name:
+        profile_name = "default"
+
+    # Load connection profiles
+    try:
+        console.print(f"\n[bold cyan]🔌 Loading connection profile: {profile_name}[/bold cyan]")
+        warehouse_profile, graph_profile = get_connection_info(profile_name, target)
+
+        console.print(f"[green]✓[/green] Profile loaded from {get_profile_path()}")
+        if target:
+            console.print(f"Target: {target}")
+    except FileNotFoundError as e:
+        console.print(f"\n[red]Error:[/red] {e}", style="red")
+        console.print(
+            "\nRun 'grai init' to create a default profiles.yml, " "or see docs for manual setup."
+        )
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"\n[red]Error:[/red] {e}", style="red")
+        raise typer.Exit(1)
+
+    # Find entity or relation
+    entity_obj = None
+    relation_obj = None
+
+    for ent in project_obj.entities:
+        if ent.entity == entity_name:
+            entity_obj = ent
+            break
+
+    if not entity_obj:
+        for rel in project_obj.relations:
+            if rel.relation == entity_name:
+                relation_obj = rel
+                break
+
+    if not entity_obj and not relation_obj:
+        console.print(
+            f"[red]Error:[/red] Entity or relation '{entity_name}' not found in project.",
+            style="red",
+        )
+        console.print("\nAvailable entities:")
+        for ent in project_obj.entities:
+            console.print(f"  • {ent.entity}")
+        if project_obj.relations:
+            console.print("\nAvailable relations:")
+            for rel in project_obj.relations:
+                console.print(f"  • {rel.relation}")
+        raise typer.Exit(1)
+
+    # Create BigQuery connection from profile
+    if not isinstance(warehouse_profile, BigQueryProfile):
+        console.print(
+            f"[red]Error:[/red] Expected BigQuery warehouse, got {warehouse_profile.type}",
+            style="red",
+        )
+        raise typer.Exit(1)
+
+    bq_conn = BigQueryConnection(
+        project_id=warehouse_profile.project,
+        dataset=warehouse_profile.dataset,
+        credentials_path=warehouse_profile.keyfile,
+        location=warehouse_profile.location,
+    )
+
+    # Show configuration
+    console.print("\n[bold cyan]� Configuration[/bold cyan]")
+    console.print(f"Profile: {profile_name}")
+    console.print(f"BigQuery Project: {warehouse_profile.project or '[dim]default[/dim]'}")
+    console.print(
+        f"BigQuery Dataset: {warehouse_profile.dataset or '[dim]from entity config[/dim]'}"
+    )
+    console.print(f"Neo4j URI: {graph_profile.uri}")
+    console.print(f"Neo4j User: {graph_profile.user}")
+    console.print(f"Batch Size: {batch_size}")
+    if limit:
+        console.print(f"Limit: {limit} rows")
+    if dry_run:
+        console.print("[yellow]Mode: DRY RUN (no data will be loaded)[/yellow]")
+    console.print()
+
+    try:
+        from grai.core.loader import Neo4jConnection, connect_neo4j
+
+        # Get Neo4j password from profile or prompt
+        neo4j_password = graph_profile.password
+        if not neo4j_password:
+            neo4j_password = typer.prompt("Neo4j password", hide_input=True)
+
+        # Connect to Neo4j
+        console.print("Connecting to Neo4j...", end=" ")
+        neo4j_conn = Neo4jConnection(
+            uri=graph_profile.uri,
+            user=graph_profile.user,
+            password=neo4j_password,
+            database=graph_profile.database,
+        )
+        driver = connect_neo4j(neo4j_conn)
+        console.print("[green]✓[/green]")
+
+        # Load data
+        if entity_obj:
+            console.print(f"\n[bold cyan]📊 Loading entity: {entity_obj.entity}[/bold cyan]")
+            result = load_entity_from_bigquery(
+                entity=entity_obj,
+                bq_connection=bq_conn,
+                neo4j_driver=driver,
+                limit=limit,
+                batch_size=batch_size,
+                dry_run=dry_run,
+            )
+        else:
+            console.print(f"\n[bold cyan]🔗 Loading relation: {relation_obj.relation}[/bold cyan]")
+            result = load_relation_from_bigquery(
+                relation=relation_obj,
+                bq_connection=bq_conn,
+                neo4j_driver=driver,
+                limit=limit,
+                batch_size=batch_size,
+                dry_run=dry_run,
+            )
+
+        # Show results
+        if result.success:
+            console.print("\n[bold green]✓ Load complete![/bold green]")
+            console.print(f"\nRows extracted: {result.rows_extracted}")
+            console.print(f"Rows loaded: {result.rows_loaded}")
+            console.print(f"Duration: {result.duration:.2f}s")
+            if result.errors:
+                console.print("\n[yellow]Warnings:[/yellow]")
+                for error in result.errors:
+                    console.print(f"  • {error}")
+        else:
+            console.print("\n[red]✗ Load failed[/red]")
+            if result.errors:
+                console.print("\n[red]Errors:[/red]")
+                for error in result.errors:
+                    console.print(f"  • {error}")
+            raise typer.Exit(1)
+
+        # Close connection
+        driver.close()
+
+    except Exception as e:
+        console.print(f"\n[red]Error:[/red] {e}", style="red")
+        import traceback
+
+        console.print(f"\n[dim]{traceback.format_exc()}[/dim]")
         raise typer.Exit(1)
 
 

@@ -2,8 +2,13 @@
 name: example-project
 version: 1.0.0
 
+# Profile to use for connections (references ~/.grai/profiles.yml)
+# Can be overridden with --profile flag or GRAI_PROFILE env var
+profile: default
+
 config:
   # Neo4j connection settings (used with --execute)
+  # NOTE: These are deprecated in favor of profiles.yml
   neo4j:
     uri: bolt://localhost:7687
     database: neo4j
