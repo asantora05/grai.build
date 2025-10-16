@@ -8,41 +8,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - GitHub issue templates (bug report, feature request, documentation, question)
 - Community health files (CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md)
 - Documentation index page (docs/index.md)
 
 ### Changed
+
 - Reorganized documentation structure (moved internal docs to `.github/internal-docs/`)
 - Renamed all user-facing docs to lowercase with hyphens (MkDocs convention)
 - Improved version management (removed hardcoded fallback version)
 
 ### Removed
+
 - Duplicate documentation files (CLI.md, SOURCE_CONFIG.md)
 
 ## [0.3.2] - 2025-10-15
 
 ### Changed
+
 - Improved dynamic version management in `grai/__init__.py`
 - Removed hardcoded version fallback for cleaner version handling
 - Version now only defined in `pyproject.toml` (single source of truth)
 
 ### Fixed
+
 - Version test is now version-agnostic (no hardcoded version checks)
 
 ## [0.3.1] - 2025-10-15
 
 ### Changed
+
 - Updated package metadata: author changed from personal name to "grai.build"
 - Updated LICENSE copyright to "grai.build"
 - Replaced personal file paths with generic placeholders in documentation
 
 ### Fixed
+
 - Removed personal information from all public package metadata
 
 ## [0.3.0] - 2025-10-15
 
 ### Added
+
 - Interactive graph visualization with D3.js and Cytoscape.js
 - `grai visualize` command for generating HTML visualizations
 - Lineage tracking and dependency analysis
@@ -57,12 +65,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation generation for all major features
 
 ### Changed
+
 - Improved CLI output with rich formatting and tables
 - Enhanced validator with circular dependency detection
 - Optimized compiler for better performance
 - Codecov configuration (disabled patch coverage requirement)
 
 ### Fixed
+
 - GitHub Actions release workflow permissions
 - Neo4j loader connection handling
 - Parser error messages with better context
@@ -70,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2025-10-14
 
 ### Added
+
 - Neo4j loader for executing Cypher scripts
 - `grai run` command with dry-run mode
 - Connection management with retry logic
@@ -78,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Execution result tracking with metrics
 
 ### Changed
+
 - Improved CLI with verbose and quiet modes
 - Enhanced error messages with file paths
 - Better validation error reporting
@@ -85,6 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-10-13
 
 ### Added
+
 - Core Pydantic models (Entity, Relation, Property, Project)
 - YAML parser for entity and relation definitions
 - Schema validator with reference checking
@@ -98,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT License
 
 ### Features
+
 - Declarative YAML-based graph modeling
 - Type-safe validation with Pydantic
 - Automatic Cypher generation
