@@ -21,6 +21,7 @@ from grai.core.cache import (
     update_cache,
 )
 from grai.core.compiler import compile_and_write, compile_schema_only
+from grai.core.dbt import parse_dbt_manifest_file, write_entities_to_yaml
 from grai.core.lineage import (
     build_lineage_graph,
     calculate_impact_analysis,
@@ -2535,6 +2536,167 @@ def _generate_lineage_html(project: Project, mermaid_diagram: str) -> str:
 </body>
 </html>
 """
+
+
+@app.command(name="import")
+def import_command(
+    source_type: str = typer.Argument(
+        ..., help="Source type to import from (currently only 'dbt' supported)."
+    ),
+    manifest: Path = typer.Option(
+        None,
+        "--manifest",
+        "-m",
+        help="Path to dbt manifest.json file (required for dbt imports).",
+    ),
+    output: Path = typer.Option(
+        Path("entities"),
+        "--output",
+        "-o",
+        help="Output directory for generated entity files.",
+    ),
+    include: Optional[str] = typer.Option(
+        None,
+        "--include",
+        "-i",
+        help="Comma-separated patterns to include (e.g., 'fct_,dim_').",
+    ),
+    exclude: Optional[str] = typer.Option(
+        None,
+        "--exclude",
+        "-e",
+        help="Comma-separated patterns to exclude (e.g., 'stg_,tmp_').",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing entity files.",
+    ),
+):
+    """
+    Import entities from external tools.
+
+    Currently supports importing from dbt manifest files.
+
+    Examples:
+
+        # Import all dbt models
+        grai import dbt --manifest target/manifest.json
+
+        # Import specific model patterns
+        grai import dbt --manifest target/manifest.json --include "fct_,dim_"
+
+        # Exclude staging models
+        grai import dbt --manifest target/manifest.json --exclude "stg_"
+
+        # Force overwrite existing files
+        grai import dbt --manifest target/manifest.json --force
+    """
+    if source_type.lower() != "dbt":
+        console.print(
+            f"[red]Error:[/red] Unsupported source type '{source_type}'. "
+            f"Currently only 'dbt' is supported.",
+            style="red",
+        )
+        raise typer.Exit(1)
+
+    # Validate manifest path
+    if not manifest:
+        console.print(
+            "[red]Error:[/red] --manifest option is required for dbt imports.",
+            style="red",
+        )
+        console.print("\nUsage: grai import dbt --manifest target/manifest.json")
+        raise typer.Exit(1)
+
+    if not manifest.exists():
+        console.print(
+            f"[red]Error:[/red] Manifest file not found: {manifest}",
+            style="red",
+        )
+        raise typer.Exit(1)
+
+    try:
+        # Parse include/exclude patterns
+        include_patterns = [p.strip() for p in include.split(",")] if include else None
+        exclude_patterns = [p.strip() for p in exclude.split(",")] if exclude else None
+
+        # Show what we're doing
+        console.print("\n[bold cyan]📦 Importing from dbt[/bold cyan]")
+        console.print(f"Manifest: {manifest}")
+        console.print(f"Output directory: {output}")
+        if include_patterns:
+            console.print(f"Include patterns: {', '.join(include_patterns)}")
+        if exclude_patterns:
+            console.print(f"Exclude patterns: {', '.join(exclude_patterns)}")
+        console.print()
+
+        # Parse manifest
+        console.print("Parsing dbt manifest...", end=" ")
+        entities = parse_dbt_manifest_file(
+            manifest,
+            include_patterns=include_patterns,
+            exclude_patterns=exclude_patterns,
+        )
+        console.print(f"[green]✓[/green] Found {len(entities)} models")
+
+        if not entities:
+            console.print(
+                "\n[yellow]Warning:[/yellow] No models found matching criteria.",
+                style="yellow",
+            )
+            raise typer.Exit(0)
+
+        # Write entities to YAML
+        console.print(f"\nWriting entity files to {output}/...")
+        try:
+            created_files = write_entities_to_yaml(
+                entities,
+                output,
+                overwrite=force,
+            )
+        except FileExistsError as e:
+            console.print(f"\n[red]Error:[/red] {e}", style="red")
+            console.print(
+                "\nUse --force to overwrite existing files.",
+                style="yellow",
+            )
+            raise typer.Exit(1)
+
+        # Show summary
+        console.print(f"\n[green]✓[/green] Created {len(created_files)} entity files")
+
+        # Show created files in a table
+        table = Table(title="Generated Entity Files", show_header=True)
+        table.add_column("Entity", style="cyan")
+        table.add_column("File", style="green")
+        table.add_column("Keys", style="yellow")
+        table.add_column("Properties", style="magenta")
+
+        for entity, filepath in zip(entities, created_files):
+            table.add_row(
+                entity.entity,
+                filepath.name,
+                ", ".join(entity.keys) if entity.keys else "[dim]none[/dim]",
+                str(len(entity.properties)),
+            )
+
+        console.print()
+        console.print(table)
+
+        # Next steps
+        console.print("\n[bold green]✓ Import complete![/bold green]")
+        console.print("\n[bold]Next steps:[/bold]")
+        console.print("  1. Review generated entity files in", str(output))
+        console.print("  2. Add or verify entity keys (from dbt tests)")
+        console.print("  3. Define relations between entities")
+        console.print("  4. Run 'grai validate' to check your schema")
+        console.print("  5. Run 'grai build' to compile to Cypher\n")
+
+    except Exception as e:
+        console.print(f"\n[red]Error:[/red] {e}", style="red")
+        raise typer.Exit(1)
 
 
 def main_cli():
