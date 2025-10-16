@@ -2657,14 +2657,16 @@ def import_command(
 
         # Parse manifest
         console.print("Parsing dbt manifest...", end=" ")
-        entities = parse_dbt_manifest_file(
+        entities, relations = parse_dbt_manifest_file(
             manifest,
             include_patterns=include_patterns,
             exclude_patterns=exclude_patterns,
         )
-        console.print(f"[green]✓[/green] Found {len(entities)} models")
+        console.print(
+            f"[green]✓[/green] Found {len(entities)} entities and {len(relations)} relations"
+        )
 
-        if not entities:
+        if not entities and not relations:
             console.print(
                 "\n[yellow]Warning:[/yellow] No models found matching criteria.",
                 style="yellow",
@@ -2672,50 +2674,106 @@ def import_command(
             raise typer.Exit(0)
 
         # Write entities to YAML
-        console.print(f"\nWriting entity files to {output}/...")
-        try:
-            created_files = write_entities_to_yaml(
-                entities,
-                output,
-                overwrite=force,
+        entity_files = []
+        if entities:
+            console.print(f"\nWriting entity files to {output}/...")
+            try:
+                entity_files = write_entities_to_yaml(
+                    entities,
+                    output,
+                    overwrite=force,
+                )
+                console.print(f"[green]✓[/green] Created {len(entity_files)} entity files")
+            except FileExistsError as e:
+                console.print(f"\n[red]Error:[/red] {e}", style="red")
+                console.print(
+                    "\nUse --force to overwrite existing files.",
+                    style="yellow",
+                )
+                raise typer.Exit(1)
+
+        # Write relations to YAML
+        from grai.core.dbt import write_relations_to_yaml
+
+        relation_files = []
+        if relations:
+            relations_dir = (
+                output.parent / "relations" if output.name == "entities" else output / "relations"
             )
-        except FileExistsError as e:
-            console.print(f"\n[red]Error:[/red] {e}", style="red")
-            console.print(
-                "\nUse --force to overwrite existing files.",
-                style="yellow",
-            )
-            raise typer.Exit(1)
+            console.print(f"\nWriting relation files to {relations_dir}/...")
+            try:
+                relation_files = write_relations_to_yaml(
+                    relations,
+                    relations_dir,
+                    overwrite=force,
+                )
+                console.print(f"[green]✓[/green] Created {len(relation_files)} relation files")
+            except FileExistsError as e:
+                console.print(f"\n[red]Error:[/red] {e}", style="red")
+                console.print(
+                    "\nUse --force to overwrite existing files.",
+                    style="yellow",
+                )
+                raise typer.Exit(1)
 
-        # Show summary
-        console.print(f"\n[green]✓[/green] Created {len(created_files)} entity files")
+        # Show entities table
+        if entities:
+            entity_table = Table(title="Generated Entity Files", show_header=True)
+            entity_table.add_column("Entity", style="cyan")
+            entity_table.add_column("File", style="green")
+            entity_table.add_column("Keys", style="yellow")
+            entity_table.add_column("Properties", style="magenta")
 
-        # Show created files in a table
-        table = Table(title="Generated Entity Files", show_header=True)
-        table.add_column("Entity", style="cyan")
-        table.add_column("File", style="green")
-        table.add_column("Keys", style="yellow")
-        table.add_column("Properties", style="magenta")
+            for entity, filepath in zip(entities, entity_files):
+                entity_table.add_row(
+                    entity.entity,
+                    filepath.name,
+                    ", ".join(entity.keys) if entity.keys else "[dim]none[/dim]",
+                    str(len(entity.properties)),
+                )
 
-        for entity, filepath in zip(entities, created_files):
-            table.add_row(
-                entity.entity,
-                filepath.name,
-                ", ".join(entity.keys) if entity.keys else "[dim]none[/dim]",
-                str(len(entity.properties)),
-            )
+            console.print()
+            console.print(entity_table)
 
-        console.print()
-        console.print(table)
+        # Show relations table
+        if relations:
+            relation_table = Table(title="Generated Relation Files", show_header=True)
+            relation_table.add_column("Relation", style="cyan")
+            relation_table.add_column("From → To", style="blue")
+            relation_table.add_column("File", style="green")
+            relation_table.add_column("Properties", style="magenta")
+
+            for relation, filepath in zip(relations, relation_files):
+                relation_table.add_row(
+                    relation.relation,
+                    f"{relation.from_entity} → {relation.to_entity}",
+                    filepath.name,
+                    str(len(relation.properties)),
+                )
+
+            console.print()
+            console.print(relation_table)
 
         # Next steps
         console.print("\n[bold green]✓ Import complete![/bold green]")
         console.print("\n[bold]Next steps:[/bold]")
-        console.print("  1. Review generated entity files in", str(output))
-        console.print("  2. Add or verify entity keys (from dbt tests)")
-        console.print("  3. Define relations between entities")
-        console.print("  4. Run 'grai validate' to check your schema")
-        console.print("  5. Run 'grai build' to compile to Cypher\n")
+        console.print("  1. Review generated files:")
+        if entities:
+            console.print(f"     - Entity files in {output}")
+        if relations:
+            relations_dir = (
+                output.parent / "relations" if output.name == "entities" else output / "relations"
+            )
+            console.print(f"     - Relation files in {relations_dir}")
+        console.print("  2. Verify entity keys (inferred from dbt tests)")
+        if relations:
+            console.print("  3. Review relationship mappings (from dbt foreign key tests)")
+            console.print("  4. Run 'grai validate' to check your schema")
+            console.print("  5. Run 'grai build' to compile to Cypher\n")
+        else:
+            console.print("  3. Define relations between entities (or add to dbt)")
+            console.print("  4. Run 'grai validate' to check your schema")
+            console.print("  5. Run 'grai build' to compile to Cypher\n")
 
     except Exception as e:
         console.print(f"\n[red]Error:[/red] {e}", style="red")
