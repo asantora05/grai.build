@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/asantora05/grai.build/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📖 Documentation
+    url: https://github.com/asantora05/grai.build/blob/main/README.md
+    about: Read the documentation and guides
+  - name: 🚀 Examples
+    url: https://github.com/asantora05/grai.build/tree/main/templates
+    about: Browse example projects and templates
