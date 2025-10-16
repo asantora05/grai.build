@@ -1,69 +1,48 @@
-name: Documentation
+name: Deploy Documentation
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - "docs/**"
-      - "README.md"
-      - "grai/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
-jobs:
-  build-example-docs:
-    name: Build Example Documentation
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
 
-      - name: Install grai.build
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-
-      - name: Create example project
-        run: |
-          mkdir example-project
-          cd example-project
-          grai init --name example-graph
-
-      - name: Generate documentation
-        run: |
-          cd example-project
-          grai docs --output ../docs-output
-
-      - name: Upload documentation artifacts
-        uses: actions/upload-artifact@v4
+      - name: Cache dependencies
+        uses: actions/cache@v3
         with:
-          name: example-docs
-          path: docs-output/
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-docs.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-  # Future: Deploy to GitHub Pages
-  # deploy-pages:
-  #   name: Deploy to GitHub Pages
-  #   needs: build-example-docs
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     pages: write
-  #     id-token: write
-  #
-  #   steps:
-  #     - name: Download artifacts
-  #       uses: actions/download-artifact@v5
-  #       with:
-  #         name: example-docs
-  #         path: ./docs
-  #
-  #     - name: Deploy to GitHub Pages
-  #       uses: peaceiris/actions-gh-pages@v3
-  #       with:
-  #         github_token: ${{ secrets.GITHUB_TOKEN }}
-  #         publish_dir: ./docs
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-docs.txt
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy documentation
+        run: mkdocs gh-deploy --force --clean --verbose

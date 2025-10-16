@@ -2,7 +2,13 @@
 
 ## What is grai.build?
 
-**grai.build is "dbt for knowledge graphs"** - a schema-as-code tool for managing graph database schemas declaratively.
+**grai.build is "dbt for knowledge graphs"** - a declarative tool for managing graph database schemas and loading data from common sources.
+
+---
+
+## 🎯 Core Philosophy
+
+### 1. **Declarative Schema-as-Code**
 
 Like dbt transformed SQL analytics with declarative modeling, grai.build brings the same approach to graph databases.
 
@@ -176,7 +182,7 @@ properties:
 ### vs. neo4j-admin import
 
 - **neo4j-admin**: Bulk CSV loading tool
-- **grai.build**: Schema management tool (use both together)
+- **grai.build**: Schema management + data loading for graphs (use both together)
 
 ### vs. Apache AGE / TigerGraph
 
@@ -313,11 +319,18 @@ Developer A              Developer B
 
 ## 🚀 Future Vision
 
-### Phase 1: Schema Management (Current)
+### Phase 1: Schema Management + Data Loading (Current)
+
+**Goal:** Manage graph schemas and load data like dbt manages SQL models
+
+**Features:**
 
 - ✅ Define entities/relations in YAML
 - ✅ Generate Cypher constraints/indexes
 - ✅ Validate schema consistency
+- ✅ Load data from BigQuery
+- ✅ Batch processing with progress tracking
+- ✅ Verbose logging for debugging
 - ✅ Basic visualization
 
 ### Phase 2: Integration Templates (Next)
@@ -478,4 +491,4 @@ Same reason you use dbt instead of raw SQL:
 
 ---
 
-**Remember:** grai.build is a **schema management tool**, not a **data loading tool**. Focus on defining your graph structure, and let your existing data pipelines handle the loading.
+**Remember:** grai.build handles both **schema management** and **data loading** from common sources. For complex transformations, use dbt. For orchestration, use Airflow/Prefect. Focus on defining your graph structure in YAML, and let grai.build handle the implementation.

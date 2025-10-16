@@ -1,19 +1,14 @@
-# 📊 Data Loading Guide
+# Data Loading Guide
 
-Complete guide to understanding data loading in grai.build.
+Complete guide for loading data into your graph database.
 
 ---
 
-## 🎯 Overview
+## 📖 Overview
 
-**Important Philosophy:** grai.build is a **schema management tool**, not a **data loading tool**.
+grai.build provides **built-in data loading** from common data sources like BigQuery, with plans for Snowflake, PostgreSQL, and CSV support.
 
-Think of it like database migrations:
-
-- **Alembic/Flyway** manage your schema (tables, columns, constraints)
-- **Your application/ETL** manages your data
-- **grai.build** manages your graph schema (entities, relations, constraints)
-- **Your data pipeline** manages your graph data
+While grai.build handles schema management AND data loading for typical use cases, it's designed to integrate with orchestration tools (Airflow, Prefect) for complex workflows. Think of it like dbt: it loads data, but you still need an orchestrator for scheduling and dependencies.
 
 ### What grai.build Does
 

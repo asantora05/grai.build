@@ -16,54 +16,8 @@ Complete guide for using grai.build from any directory as a real user.
 
 First, make sure grai is installed and working:
 
-````bash
-# Check if ## 📊 Step 8: Load Sample Data
-
-Go**For now, stick with the default schema-only mode.** To load actual data, use the provided CSV files and loading script (see next section).
-
----
-
-## Alternative: Manual Data Loading
-
-If you want to create data programmatically instead of using CSV files, create a Python script:! `grai init` already created sample CSV files and a Cypher loading script for you.
-
-### Quick Load (Recommended)
-
-The easiest way to load data is using the provided Cypher script:
-
 ```bash
-# Option 1: Neo4j Browser (easiest)
-# 1. Open http://localhost:7474
-# 2. Copy and paste the contents of load_data.cypher
-# 3. Click "Run"
-
-# Option 2: cypher-shell (from terminal)
-cat load_data.cypher | cypher-shell -u neo4j -p graipassword
-````
-
-**Expected output (from Neo4j Browser):**
-
-The script will:
-
-- Load 5 customers
-- Load 6 products
-- Create 10 purchase relationships
-- Show verification queries with counts and sample data
-
-You should see output like:
-
-```
-Added 5 nodes
-Added 6 nodes
-Created 10 relationships
-```
-
-### Manual Load (Alternative)
-
-If you prefer to create your own loading script:
-
-```bash
-cat > my_loader.py << 'EOF's installed
+# Check if grai is installed
 which grai
 
 # Check version

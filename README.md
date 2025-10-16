@@ -10,27 +10,35 @@
 
 ## 📘 What is grai.build?
 
-**grai.build brings dbt's documentation experience to graph databases** - define your schema in YAML, generate beautiful docs, and manage migrations.
+**grai.build brings dbt's workflow to graph databases** - define your schema in YAML, load data from common sources, generate beautiful docs, and track lineage.
 
-It manages your graph **schema**, not your data. You define entities and relations in YAML, and grai.build:
+You define entities and relations in YAML, and grai.build:
 
 - ✅ **Validates** your schema for consistency
 - ✅ **Generates** Cypher constraints and indexes
+- ✅ **Loads data** from BigQuery, Snowflake, and other sources
 - ✅ **Documents** your graph structure automatically (like `dbt docs`)
 - ✅ **Tracks lineage** with interactive visualizations
 - ✅ **Integrates** with your CI/CD pipeline
 
+**What it DOES:**
+
+- ✅ Schema management (constraints, indexes, validation)
+- ✅ Data loading from common sources (BigQuery, future: Snowflake, PostgreSQL, CSV)
+- ✅ Declarative YAML-based definitions
+- ✅ Documentation and lineage tracking
+
 **What it's NOT:**
 
-- ❌ Not an ETL tool (use Airflow, Prefect, or dbt for data loading)
-- ❌ Not a data transformation framework (dbt does this for SQL)
+- ❌ Not a workflow orchestrator (use Airflow/Prefect for scheduling and complex pipelines)
+- ❌ Not a data transformation framework (use dbt for SQL transformations, then load to graph)
 - ❌ Not a replacement for your existing data infrastructure
 
 **Think of it as:**
 
-- **Like dbt:** Declarative YAML definitions, beautiful documentation, lineage tracking
+- **Like dbt:** Declarative YAML definitions, data loading, documentation, lineage tracking
 - **Like Alembic/Flyway:** Database migrations and schema management
-- **For graphs:** Manages Neo4j schema while your pipelines handle data
+- **For graphs:** Manages Neo4j schema AND loads data from your warehouse
 
 ## 🚀 Quick Start
 

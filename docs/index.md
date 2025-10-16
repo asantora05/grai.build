@@ -13,9 +13,10 @@ Welcome to the grai.build documentation! This guide will help you understand and
 ### Core Features
 
 - **[CLI Reference](cli.md)** - Complete command-line interface documentation
-- **[Source Configuration](sources.md)** - How to configure data sources
-- **[Data Loading](data-loading.md)** - Loading data into your graph
+- **[Source Configuration](sources.md)** - How to configure data sources (BigQuery, Snowflake, etc.)
+- **[Data Loading](data-loading.md)** - Loading data from warehouses into your graph
 - **[Build Cache](cache.md)** - Incremental builds for faster iteration
+- **[Profiles](profiles.md)** - Multi-environment configuration (dev, staging, prod)
 
 ### Advanced Features
 
@@ -79,20 +80,24 @@ If you're familiar with dbt, you'll feel at home with grai.build:
 
 - **YAML-based definitions** - Like dbt models
 - **Build command** - Similar to `dbt build`
+- **Data loading** - Like `dbt run` but for graphs
 - **Documentation generation** - Like `dbt docs generate`
 - **Incremental builds** - Skip unchanged files
+- **Profiles** - Multi-environment configs like dbt
 
 See: [Philosophy](philosophy.md#comparison-to-dbt)
 
 ### Data Engineers
 
-Managing graph schemas in production:
+Managing graph schemas and loading data in production:
 
-- **CI/CD integration** - Validate schemas in your pipeline
+- **CI/CD integration** - Validate schemas and load data in your pipeline
 - **Version control** - Track schema changes in git
 - **Multiple environments** - Dev, staging, production configs
+- **Data source connectors** - BigQuery, Snowflake, PostgreSQL (future)
+- **Orchestration-ready** - Integrates with Airflow, Prefect, etc.
 
-See: [Data Loading](data-loading.md)
+See: [Data Loading](data-loading.md), [Profiles](profiles.md)
 
 ### Data Analysts
 
@@ -114,6 +119,10 @@ YAML Definitions → Parser → Validator → Compiler → Cypher Scripts → Ne
                                             Lineage Tracker
                                                    ↓
                                             Visualizations
+
+Data Sources (BigQuery, etc.) → Data Loader → Batching → Neo4j
+                                     ↓
+                                Verbose Logging
 ```
 
 Each component is independent and testable, making the tool reliable and extensible.
@@ -122,9 +131,13 @@ Each component is independent and testable, making the tool reliable and extensi
 
 Want to contribute to grai.build?
 
-- Read the [Contributing Guide](../CONTRIBUTING.md)
-- Check out [internal documentation](../.github/internal-docs/) for implementation details
-- Browse [good first issues](https://github.com/asantora05/grai.build/labels/good%20first%20issue)
+- 🐛 [Report bugs](https://github.com/asantora05/grai.build/issues)
+- 💡 [Suggest features](https://github.com/asantora05/grai.build/discussions)
+- 📖 Improve documentation
+- 🧪 Write tests
+- 🔧 Submit pull requests
+
+See our [Contributing Guide](https://github.com/asantora05/grai.build/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/asantora05/grai.build/blob/main/CODE_OF_CONDUCT.md).
 
 ## 📄 License
 

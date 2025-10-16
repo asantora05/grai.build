@@ -1,0 +1,45 @@
+/* Custom styles for grai.build documentation */
+
+:root {
+  --grai-primary: #4f46e5;
+  --grai-secondary: #06b6d4;
+  --grai-accent: #f59e0b;
+}
+
+/* Code blocks */
+.highlight {
+  border-radius: 4px;
+}
+
+/* Admonitions */
+.admonition {
+  border-radius: 4px;
+}
+
+/* Navigation */
+.md-nav__link--active {
+  color: var(--grai-primary) !important;
+}
+
+/* Headers */
+h1, h2, h3 {
+  font-weight: 600;
+}
+
+/* Tables */
+table {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Code inline */
+code {
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  text-align: center;
+  margin: 1em 0;
+}
