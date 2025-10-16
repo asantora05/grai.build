@@ -45,6 +45,7 @@ class Neo4jConnection:
 
 
 @dataclass
+@dataclass
 class ExecutionResult:
     """
     Result of executing Cypher statements.
@@ -53,6 +54,11 @@ class ExecutionResult:
         success: Whether execution was successful
         statements_executed: Number of statements executed
         records_affected: Number of records affected (if available)
+        nodes_created: Number of nodes created
+        nodes_deleted: Number of nodes deleted
+        relationships_created: Number of relationships created
+        relationships_deleted: Number of relationships deleted
+        properties_set: Number of properties set
         execution_time: Time taken to execute (seconds)
         errors: List of error messages
         warnings: List of warning messages
@@ -61,6 +67,11 @@ class ExecutionResult:
     success: bool
     statements_executed: int = 0
     records_affected: int = 0
+    nodes_created: int = 0
+    nodes_deleted: int = 0
+    relationships_created: int = 0
+    relationships_deleted: int = 0
+    properties_set: int = 0
     execution_time: float = 0.0
     errors: List[str] = None
     warnings: List[str] = None
@@ -282,6 +293,11 @@ def execute_cypher(
 
                     # Track counters
                     counters = summary.counters
+                    result.nodes_created += counters.nodes_created
+                    result.nodes_deleted += counters.nodes_deleted
+                    result.relationships_created += counters.relationships_created
+                    result.relationships_deleted += counters.relationships_deleted
+                    result.properties_set += counters.properties_set
                     result.records_affected += (
                         counters.nodes_created
                         + counters.nodes_deleted

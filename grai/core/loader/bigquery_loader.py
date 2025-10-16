@@ -341,6 +341,7 @@ def load_entity_from_bigquery(
     limit: Optional[int] = None,
     batch_size: int = 1000,
     dry_run: bool = False,
+    verbose: bool = False,
 ) -> LoadResult:
     """
     Load entity data from BigQuery to Neo4j.
@@ -378,23 +379,51 @@ def load_entity_from_bigquery(
         extractor.connect()
 
         # Extract and load data in batches
+        batch_num = 0
         for batch in extract_data(extractor, entity, limit=limit, batch_size=batch_size):
+            batch_num += 1
             rows_extracted += len(batch)
+
+            if verbose:
+                print(f"\n[Batch {batch_num}] Extracted {len(batch)} rows")
+                if batch:
+                    print(f"  Sample row: {batch[0]}")
 
             if not dry_run:
                 # Generate Cypher for this batch
                 # For now, we'll use parameterized queries
                 cypher = _generate_batch_cypher(entity, batch)
 
+                if verbose:
+                    print(f"\n[Batch {batch_num}] Generated Cypher:")
+                    print(f"  {cypher[:200]}..." if len(cypher) > 200 else f"  {cypher}")
+
                 # Execute against Neo4j
                 try:
                     # Import here to avoid circular dependency
                     from grai.core.loader.neo4j_loader import execute_cypher
 
-                    execute_cypher(neo4j_connection, cypher)
-                    rows_loaded += len(batch)
+                    result = execute_cypher(neo4j_connection, cypher, parameters={"batch": batch})
+
+                    if verbose:
+                        print(f"\n[Batch {batch_num}] Neo4j execution result:")
+                        print(f"  Success: {result.success}")
+                        print(f"  Statements executed: {result.statements_executed}")
+                        print(f"  Records affected: {result.records_affected}")
+                        print(f"  Nodes created: {result.nodes_created}")
+                        print(f"  Properties set: {result.properties_set}")
+                        if result.errors:
+                            print(f"  Errors: {result.errors}")
+
+                    if result.success:
+                        rows_loaded += len(batch)
+                    else:
+                        errors.append(f"Batch {batch_num} failed: {'; '.join(result.errors)}")
+
                 except Exception as e:
-                    errors.append(f"Neo4j error: {e}")
+                    errors.append(f"Neo4j error in batch {batch_num}: {e}")
+                    if verbose:
+                        print(f"\n[Batch {batch_num}] Error: {e}")
 
         duration = time.time() - start_time
 
@@ -426,6 +455,7 @@ def load_relation_from_bigquery(
     limit: Optional[int] = None,
     batch_size: int = 1000,
     dry_run: bool = False,
+    verbose: bool = False,
 ) -> LoadResult:
     """
     Load relation data from BigQuery to Neo4j.
@@ -466,21 +496,49 @@ def load_relation_from_bigquery(
                 columns.append(prop.name)
 
         # Extract and load
+        batch_num = 0
         for batch in extractor.extract_table(
             source_name, columns=columns, limit=limit, batch_size=batch_size
         ):
+            batch_num += 1
             rows_extracted += len(batch)
+
+            if verbose:
+                print(f"\n[Batch {batch_num}] Extracted {len(batch)} rows")
+                if batch:
+                    print(f"  Sample row: {batch[0]}")
 
             if not dry_run:
                 cypher = _generate_relation_batch_cypher(relation, batch)
 
+                if verbose:
+                    print(f"\n[Batch {batch_num}] Generated Cypher:")
+                    print(f"  {cypher[:200]}..." if len(cypher) > 200 else f"  {cypher}")
+
                 try:
                     from grai.core.loader.neo4j_loader import execute_cypher
 
-                    execute_cypher(neo4j_connection, cypher)
-                    rows_loaded += len(batch)
+                    result = execute_cypher(neo4j_connection, cypher, parameters={"batch": batch})
+
+                    if verbose:
+                        print(f"\n[Batch {batch_num}] Neo4j execution result:")
+                        print(f"  Success: {result.success}")
+                        print(f"  Statements executed: {result.statements_executed}")
+                        print(f"  Records affected: {result.records_affected}")
+                        print(f"  Relationships created: {result.relationships_created}")
+                        print(f"  Properties set: {result.properties_set}")
+                        if result.errors:
+                            print(f"  Errors: {result.errors}")
+
+                    if result.success:
+                        rows_loaded += len(batch)
+                    else:
+                        errors.append(f"Batch {batch_num} failed: {'; '.join(result.errors)}")
+
                 except Exception as e:
-                    errors.append(f"Neo4j error: {e}")
+                    errors.append(f"Neo4j error in batch {batch_num}: {e}")
+                    if verbose:
+                        print(f"\n[Batch {batch_num}] Error: {e}")
 
         duration = time.time() - start_time
 

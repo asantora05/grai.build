@@ -53,10 +53,12 @@ class SnowflakeProfile(BaseModel):
     role: Optional[str] = Field(None, description="Snowflake role")
     database: Optional[str] = Field(None, description="Default database")
     warehouse: Optional[str] = Field(None, description="Snowflake warehouse")
-    schema: Optional[str] = Field(None, description="Default schema")
+    schema_name: Optional[str] = Field(None, description="Default schema", alias="schema")
     authenticator: Optional[str] = Field(
         None, description="Authentication method (e.g., 'externalbrowser')"
     )
+
+    model_config = {"populate_by_name": True}
 
 
 class Neo4jProfile(BaseModel):

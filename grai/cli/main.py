@@ -2811,6 +2811,12 @@ def load(
         "--dry-run",
         help="Preview the operation without loading data.",
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Show detailed execution information (queries, results, etc.).",
+    ),
 ):
     """
     Load data from a data warehouse into Neo4j.
@@ -2861,7 +2867,8 @@ def load(
     # Load project to get entity/relation definitions
     try:
         console.print("\n[bold cyan]📦 Loading grai.build project[/bold cyan]")
-        project_obj = load_project()
+        project_root = Path.cwd()
+        project_obj = load_project(project_root)
         console.print(f"[green]✓[/green] Loaded project: {project_obj.name}")
     except Exception as e:
         console.print(f"\n[red]Error:[/red] Failed to load project: {e}", style="red")
@@ -2954,7 +2961,7 @@ def load(
     console.print()
 
     try:
-        from grai.core.loader import Neo4jConnection, connect_neo4j
+        from grai.core.loader import connect_neo4j
 
         # Get Neo4j password from profile or prompt
         neo4j_password = graph_profile.password
@@ -2963,35 +2970,53 @@ def load(
 
         # Connect to Neo4j
         console.print("Connecting to Neo4j...", end=" ")
-        neo4j_conn = Neo4jConnection(
+        driver = connect_neo4j(
             uri=graph_profile.uri,
             user=graph_profile.user,
             password=neo4j_password,
             database=graph_profile.database,
         )
-        driver = connect_neo4j(neo4j_conn)
         console.print("[green]✓[/green]")
 
         # Load data
         if entity_obj:
             console.print(f"\n[bold cyan]📊 Loading entity: {entity_obj.entity}[/bold cyan]")
+
+            if verbose:
+                console.print("\n[dim]Entity Configuration:[/dim]")
+                console.print(f"  Source: {entity_obj.get_source_name()}")
+                console.print(f"  Keys: {entity_obj.keys}")
+                console.print(f"  Properties: {[p.name for p in entity_obj.properties]}")
+
             result = load_entity_from_bigquery(
                 entity=entity_obj,
-                bq_connection=bq_conn,
-                neo4j_driver=driver,
+                bigquery_connection=bq_conn,
+                neo4j_connection=driver,
                 limit=limit,
                 batch_size=batch_size,
                 dry_run=dry_run,
+                verbose=verbose,
             )
         else:
             console.print(f"\n[bold cyan]🔗 Loading relation: {relation_obj.relation}[/bold cyan]")
+
+            if verbose:
+                console.print("\n[dim]Relation Configuration:[/dim]")
+                console.print(f"  Source: {relation_obj.get_source_name()}")
+                console.print(
+                    f"  From: {relation_obj.from_entity} ({relation_obj.mappings.from_key})"
+                )
+                console.print(f"  To: {relation_obj.to_entity} ({relation_obj.mappings.to_key})")
+                console.print(f"  Properties: {[p.name for p in relation_obj.properties]}")
+
             result = load_relation_from_bigquery(
                 relation=relation_obj,
-                bq_connection=bq_conn,
-                neo4j_driver=driver,
+                bigquery_connection=bq_conn,
+                neo4j_connection=driver,
                 limit=limit,
                 batch_size=batch_size,
                 dry_run=dry_run,
+                verbose=verbose,
             )
 
         # Show results
@@ -2999,7 +3024,7 @@ def load(
             console.print("\n[bold green]✓ Load complete![/bold green]")
             console.print(f"\nRows extracted: {result.rows_extracted}")
             console.print(f"Rows loaded: {result.rows_loaded}")
-            console.print(f"Duration: {result.duration:.2f}s")
+            console.print(f"Duration: {result.duration_seconds:.2f}s")
             if result.errors:
                 console.print("\n[yellow]Warnings:[/yellow]")
                 for error in result.errors:
