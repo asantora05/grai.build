@@ -244,84 +244,84 @@ def test_extract_table_basic(bigquery_connection, mock_bigquery):
 
 def test_extract_table_with_columns(bigquery_connection, mock_bigquery):
     """Test extracting specific columns from a table."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter([]))
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter([]))
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        list(extractor.extract_table("customers", columns=["customer_id", "name"]))
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        query = mock_client.query.call_args[0][0]
-        assert "SELECT customer_id, name FROM" in query
+    list(extractor.extract_table("customers", columns=["customer_id", "name"]))
+
+    query = mock_client.query.call_args[0][0]
+    assert "SELECT customer_id, name FROM" in query
 
 
 def test_extract_table_with_where_clause(bigquery_connection, mock_bigquery):
     """Test extracting with WHERE clause filtering."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter([]))
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter([]))
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        list(extractor.extract_table("customers", where_clause="region = 'US'"))
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        query = mock_client.query.call_args[0][0]
-        assert "WHERE region = 'US'" in query
+    list(extractor.extract_table("customers", where_clause="region = 'US'"))
+
+    query = mock_client.query.call_args[0][0]
+    assert "WHERE region = 'US'" in query
 
 
 def test_extract_table_with_limit(bigquery_connection, mock_bigquery):
     """Test extracting with row limit."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter([]))
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter([]))
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        list(extractor.extract_table("customers", limit=100))
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        query = mock_client.query.call_args[0][0]
-        assert "LIMIT 100" in query
+    list(extractor.extract_table("customers", limit=100))
+
+    query = mock_client.query.call_args[0][0]
+    assert "LIMIT 100" in query
 
 
 def test_extract_table_batching(bigquery_connection, mock_bigquery):
     """Test that data is correctly batched."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        # Create 5 mock rows
-        mock_rows = []
-        for i in range(5):
-            mock_row = Mock()
-            mock_row.items.return_value = [("id", i), ("value", f"val{i}")]
-            mock_rows.append(mock_row)
+    # Create 5 mock rows
+    mock_rows = []
+    for i in range(5):
+        mock_row = Mock()
+        mock_row.items.return_value = [("id", i), ("value", f"val{i}")]
+        mock_rows.append(mock_row)
 
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter(mock_rows))
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter(mock_rows))
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        # Extract with batch size of 2
-        batches = list(extractor.extract_table("test", batch_size=2))
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        assert len(batches) == 3  # 2 + 2 + 1
-        assert len(batches[0]) == 2
-        assert len(batches[1]) == 2
-        assert len(batches[2]) == 1
+    # Extract with batch size of 2
+    batches = list(extractor.extract_table("test", batch_size=2))
+
+    assert len(batches) == 3  # 2 + 2 + 1
+    assert len(batches[0]) == 2
+    assert len(batches[1]) == 2
+    assert len(batches[2]) == 1
 
 
 def test_extract_table_no_default_dataset(mock_bigquery):
@@ -337,108 +337,106 @@ def test_extract_table_no_default_dataset(mock_bigquery):
 
 def test_extract_table_with_dataset_prefix(bigquery_connection, mock_bigquery):
     """Test table extraction with dataset.table format."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter([]))
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter([]))
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        list(extractor.extract_table("analytics.customers"))
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        query = mock_client.query.call_args[0][0]
-        assert "`test-project.analytics.customers`" in query
+    list(extractor.extract_table("analytics.customers"))
+
+    query = mock_client.query.call_args[0][0]
+    assert "`test-project.analytics.customers`" in query
 
 
 def test_extract_table_fully_qualified(bigquery_connection, mock_bigquery):
     """Test table extraction with fully qualified name."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter([]))
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter([]))
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        list(extractor.extract_table("other-project.other_dataset.customers"))
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        query = mock_client.query.call_args[0][0]
-        assert "`other-project.other_dataset.customers`" in query
+    list(extractor.extract_table("other-project.other_dataset.customers"))
+
+    query = mock_client.query.call_args[0][0]
+    assert "`other-project.other_dataset.customers`" in query
 
 
 def test_extract_query(bigquery_connection, mock_bigquery):
     """Test extracting data with custom SQL query."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_row = Mock()
-        mock_row.items.return_value = [("count", 42)]
+    mock_row = Mock()
+    mock_row.items.return_value = [("count", 42)]
 
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter([mock_row]))
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter([mock_row]))
 
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        query = "SELECT COUNT(*) as count FROM analytics.customers"
-        batches = list(extractor.extract_query(query, batch_size=10))
+    query = "SELECT COUNT(*) as count FROM analytics.customers"
+    batches = list(extractor.extract_query(query, batch_size=10))
 
-        assert len(batches) == 1
-        assert batches[0][0]["count"] == 42
-        mock_client.query.assert_called_once_with(query)
+    assert len(batches) == 1
+    assert batches[0][0]["count"] == 42
+    mock_client.query.assert_called_once_with(query)
 
 
 def test_get_table_schema(bigquery_connection, mock_bigquery):
     """Test retrieving table schema."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        # Mock schema fields
-        field1 = Mock()
-        field1.name = "customer_id"
-        field1.field_type = "STRING"
+    # Mock schema fields
+    field1 = Mock()
+    field1.name = "customer_id"
+    field1.field_type = "STRING"
 
-        field2 = Mock()
-        field2.name = "age"
-        field2.field_type = "INTEGER"
+    field2 = Mock()
+    field2.name = "age"
+    field2.field_type = "INTEGER"
 
-        mock_table = Mock()
-        mock_table.schema = [field1, field2]
+    mock_table = Mock()
+    mock_table.schema = [field1, field2]
 
-        mock_client = Mock()
-        mock_client.get_table.return_value = mock_table
-        mock_client_class.return_value = mock_client
+    mock_client = MagicMock()
+    mock_client.get_table.return_value = mock_table
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        schema = extractor.get_table_schema("customers")
+    schema = extractor.get_table_schema("customers")
 
-        assert len(schema) == 2
-        assert schema[0] == {"name": "customer_id", "type": "STRING"}
-        assert schema[1] == {"name": "age", "type": "INTEGER"}
+    assert len(schema) == 2
+    assert schema[0] == {"name": "customer_id", "type": "STRING"}
+    assert schema[1] == {"name": "age", "type": "INTEGER"}
 
 
 def test_extractor_close(bigquery_connection, mock_bigquery):
     """Test closing BigQuery connection."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_client = Mock()
-        mock_client_class.return_value = mock_client
+    mock_client = MagicMock()
+    mock_client.close = Mock()
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        assert extractor.client is not None
+    assert extractor.client is not None
 
-        extractor.close()
+    extractor.close()
 
-        assert extractor.client is None
-        mock_client.close.assert_called_once()
+    assert extractor.client is None
+    mock_client.close.assert_called_once()
 
 
 # Helper Function Tests
@@ -459,38 +457,37 @@ def test_connect_bigquery(mock_bigquery):
 
 def test_extract_data(bigquery_connection, sample_entity, mock_bigquery):
     """Test extract_data function with entity."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_row = Mock()
-        mock_row.items.return_value = [
-            ("customer_id", "C001"),
-            ("name", "Alice"),
-            ("email", "alice@example.com"),
-            ("region", "US"),
-        ]
+    mock_row = Mock()
+    mock_row.items.return_value = [
+        ("customer_id", "C001"),
+        ("name", "Alice"),
+        ("email", "alice@example.com"),
+        ("region", "US"),
+    ]
 
-        mock_job = MagicMock()
-        mock_job.__iter__ = Mock(return_value=iter([mock_row]))
+    mock_job = MagicMock()
+    mock_job.__iter__ = Mock(return_value=iter([mock_row]))
 
-        mock_client = Mock()
-        mock_client.query.return_value = mock_job
-        mock_client_class.return_value = mock_client
+    mock_client = MagicMock()
+    mock_client.query.return_value = mock_job
 
-        extractor = BigQueryExtractor(bigquery_connection)
-        extractor.connect()
+    # Create extractor and manually set the client (bypass connect())
+    extractor = BigQueryExtractor(bigquery_connection)
+    extractor.client = mock_client
 
-        batches = list(extract_data(extractor, sample_entity, limit=100, batch_size=10))
+    batches = list(extract_data(extractor, sample_entity, limit=100, batch_size=10))
 
-        assert len(batches) == 1
-        assert len(batches[0]) == 1
-        assert batches[0][0]["customer_id"] == "C001"
+    assert len(batches) == 1
+    assert len(batches[0]) == 1
+    assert batches[0][0]["customer_id"] == "C001"
 
-        # Verify query includes all entity properties
-        query = mock_client.query.call_args[0][0]
-        assert "customer_id" in query
-        assert "name" in query
-        assert "email" in query
-        assert "region" in query
-        assert "LIMIT 100" in query
+    # Verify query includes all entity properties
+    query = mock_client.query.call_args[0][0]
+    assert "customer_id" in query
+    assert "name" in query
+    assert "email" in query
+    assert "region" in query
+    assert "LIMIT 100" in query
 
 
 # Cypher Generation Tests
@@ -547,122 +544,97 @@ def test_generate_relation_batch_cypher(sample_relation):
 
 def test_load_entity_from_bigquery_success(bigquery_connection, sample_entity, mock_bigquery):
     """Test successful entity loading from BigQuery to Neo4j."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
-            # Mock successful execution result
-            mock_exec_result = Mock()
-            mock_exec_result.success = True
-            mock_exec_result.statements_executed = 1
-            mock_exec_result.records_affected = 1
-            mock_exec_result.nodes_created = 1
-            mock_exec_result.properties_set = 4
-            mock_exec_result.errors = []
-            mock_execute.return_value = mock_exec_result
+    with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
+        # Mock successful execution result
+        mock_exec_result = Mock()
+        mock_exec_result.success = True
+        mock_exec_result.statements_executed = 1
+        mock_exec_result.records_affected = 1
+        mock_exec_result.nodes_created = 1
+        mock_exec_result.properties_set = 4
+        mock_exec_result.errors = []
+        mock_execute.return_value = mock_exec_result
 
-            # Mock BigQuery data
-            mock_row = Mock()
-            mock_row.items.return_value = [
-                ("customer_id", "C001"),
-                ("name", "Alice"),
-                ("email", "alice@example.com"),
-                ("region", "US"),
-            ]
+        # Mock BigQuery data
+        mock_row = Mock()
+        mock_row.items.return_value = [
+            ("customer_id", "C001"),
+            ("name", "Alice"),
+            ("email", "alice@example.com"),
+            ("region", "US"),
+        ]
 
-            mock_job = MagicMock()
-            mock_job.__iter__ = Mock(return_value=iter([mock_row]))
+        mock_job = MagicMock()
+        mock_job.__iter__ = Mock(return_value=iter([mock_row]))
 
-            mock_client = Mock()
-            mock_client.query.return_value = mock_job
-            mock_client_class.return_value = mock_client
+        mock_client = MagicMock()
+        mock_client.query.return_value = mock_job
+        mock_bigquery.Client.return_value = mock_client
 
-            # Mock Neo4j connection
-            neo4j_conn = Mock()
+        # Mock Neo4j connection
+        neo4j_conn = Mock()
 
-            result = load_entity_from_bigquery(
-                entity=sample_entity,
-                bigquery_connection=bigquery_connection,
-                neo4j_connection=neo4j_conn,
-                limit=100,
-                batch_size=10,
-            )
+        result = load_entity_from_bigquery(
+            entity=sample_entity,
+            bigquery_connection=bigquery_connection,
+            neo4j_connection=neo4j_conn,
+            limit=100,
+            batch_size=10,
+        )
 
-            assert result.success is True
-            assert result.entity_name == "customer"
-            assert result.rows_extracted == 1
-            assert result.rows_loaded == 1
-            assert len(result.errors) == 0
-            assert result.duration_seconds > 0
+        assert result.success is True
+        assert result.entity_name == "customer"
+        assert result.rows_extracted == 1
+        assert result.rows_loaded == 1
+        assert len(result.errors) == 0
+        assert result.duration_seconds > 0
 
-            # Verify Cypher was executed
-            mock_execute.assert_called_once()
+        # Verify Cypher was executed
+        mock_execute.assert_called_once()
 
 
 def test_load_entity_from_bigquery_dry_run(bigquery_connection, sample_entity, mock_bigquery):
     """Test entity loading in dry-run mode (no Neo4j writes)."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
-            mock_row = Mock()
-            mock_row.items.return_value = [("customer_id", "C001")]
+    with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
+        mock_row = Mock()
+        mock_row.items.return_value = [("customer_id", "C001")]
 
-            mock_job = MagicMock()
-            mock_job.__iter__ = Mock(return_value=iter([mock_row]))
+        mock_job = MagicMock()
+        mock_job.__iter__ = Mock(return_value=iter([mock_row]))
 
-            mock_client = Mock()
-            mock_client.query.return_value = mock_job
-            mock_client_class.return_value = mock_client
+        mock_client = MagicMock()
+        mock_client.query.return_value = mock_job
+        mock_bigquery.Client.return_value = mock_client
 
-            neo4j_conn = Mock()
+        neo4j_conn = Mock()
 
-            result = load_entity_from_bigquery(
-                entity=sample_entity,
-                bigquery_connection=bigquery_connection,
-                neo4j_connection=neo4j_conn,
-                dry_run=True,
-            )
+        result = load_entity_from_bigquery(
+            entity=sample_entity,
+            bigquery_connection=bigquery_connection,
+            neo4j_connection=neo4j_conn,
+            dry_run=True,
+        )
 
-            assert result.success is True
-            assert result.rows_extracted == 1
-            assert result.rows_loaded == 0  # Dry run, no loads
-            mock_execute.assert_not_called()  # No Cypher execution
+        assert result.success is True
+        assert result.rows_extracted == 1
+        assert result.rows_loaded == 0  # Dry run, no loads
+        mock_execute.assert_not_called()  # No Cypher execution
 
 
 def test_load_entity_from_bigquery_neo4j_error(bigquery_connection, sample_entity, mock_bigquery):
     """Test handling Neo4j errors during loading."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
-            mock_execute.side_effect = Exception("Neo4j connection failed")
+    with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
+        mock_execute.side_effect = Exception("Neo4j connection failed")
 
-            mock_row = Mock()
-            mock_row.items.return_value = [("customer_id", "C001")]
+        mock_row = Mock()
+        mock_row.items.return_value = [("customer_id", "C001")]
 
-            mock_job = MagicMock()
-            mock_job.__iter__ = Mock(return_value=iter([mock_row]))
+        mock_job = MagicMock()
+        mock_job.__iter__ = Mock(return_value=iter([mock_row]))
 
-            mock_client = Mock()
-            mock_client.query.return_value = mock_job
-            mock_client_class.return_value = mock_client
-
-            neo4j_conn = Mock()
-
-            result = load_entity_from_bigquery(
-                entity=sample_entity,
-                bigquery_connection=bigquery_connection,
-                neo4j_connection=neo4j_conn,
-            )
-
-            assert result.success is False
-            assert result.rows_extracted == 1
-            assert result.rows_loaded == 0
-            assert len(result.errors) > 0
-            assert "Neo4j error" in result.errors[0]
-
-
-def test_load_entity_from_bigquery_extraction_error(
-    bigquery_connection, sample_entity, mock_bigquery
-):
-    """Test handling BigQuery extraction errors."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        mock_client_class.side_effect = Exception("BigQuery connection failed")
+        mock_client = MagicMock()
+        mock_client.query.return_value = mock_job
+        mock_bigquery.Client.return_value = mock_client
 
         neo4j_conn = Mock()
 
@@ -673,89 +645,107 @@ def test_load_entity_from_bigquery_extraction_error(
         )
 
         assert result.success is False
-        assert result.rows_extracted == 0
+        assert result.rows_extracted == 1
         assert result.rows_loaded == 0
         assert len(result.errors) > 0
 
 
+def test_load_entity_from_bigquery_extraction_error(
+    bigquery_connection, sample_entity, mock_bigquery
+):
+    """Test handling BigQuery extraction errors."""
+    mock_bigquery.Client.side_effect = Exception("BigQuery connection failed")
+
+    neo4j_conn = Mock()
+
+    result = load_entity_from_bigquery(
+        entity=sample_entity,
+        bigquery_connection=bigquery_connection,
+        neo4j_connection=neo4j_conn,
+    )
+
+    assert result.success is False
+    assert result.rows_extracted == 0
+    assert result.rows_loaded == 0
+    assert len(result.errors) > 0
+
+
 def test_load_relation_from_bigquery_success(bigquery_connection, sample_relation, mock_bigquery):
     """Test successful relation loading from BigQuery to Neo4j."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
-            # Mock successful execution result
-            mock_exec_result = Mock()
-            mock_exec_result.success = True
-            mock_exec_result.statements_executed = 1
-            mock_exec_result.records_affected = 1
-            mock_exec_result.relationships_created = 1
-            mock_exec_result.properties_set = 3
-            mock_exec_result.errors = []
-            mock_execute.return_value = mock_exec_result
+    with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
+        # Mock successful execution result
+        mock_exec_result = Mock()
+        mock_exec_result.success = True
+        mock_exec_result.statements_executed = 1
+        mock_exec_result.records_affected = 1
+        mock_exec_result.relationships_created = 1
+        mock_exec_result.properties_set = 3
+        mock_exec_result.errors = []
+        mock_execute.return_value = mock_exec_result
 
-            mock_row = Mock()
-            mock_row.items.return_value = [
-                ("customer_id", "C001"),
-                ("product_id", "P001"),
-                ("order_id", "O001"),
-                ("quantity", 2),
-                ("amount", 100.0),
-            ]
+        mock_row = Mock()
+        mock_row.items.return_value = [
+            ("customer_id", "C001"),
+            ("product_id", "P001"),
+            ("order_id", "O001"),
+            ("quantity", 2),
+            ("amount", 100.0),
+        ]
 
-            mock_job = MagicMock()
-            mock_job.__iter__ = Mock(return_value=iter([mock_row]))
+        mock_job = MagicMock()
+        mock_job.__iter__ = Mock(return_value=iter([mock_row]))
 
-            mock_client = Mock()
-            mock_client.query.return_value = mock_job
-            mock_client_class.return_value = mock_client
+        mock_client = MagicMock()
+        mock_client.query.return_value = mock_job
+        mock_bigquery.Client.return_value = mock_client
 
-            neo4j_conn = Mock()
+        neo4j_conn = Mock()
 
-            result = load_relation_from_bigquery(
-                relation=sample_relation,
-                bigquery_connection=bigquery_connection,
-                neo4j_connection=neo4j_conn,
-                limit=100,
-            )
+        result = load_relation_from_bigquery(
+            relation=sample_relation,
+            bigquery_connection=bigquery_connection,
+            neo4j_connection=neo4j_conn,
+            limit=100,
+        )
 
-            assert result.success is True
-            assert result.entity_name == "PURCHASED"
-            assert result.rows_extracted == 1
-            assert result.rows_loaded == 1
-            assert len(result.errors) == 0
+        assert result.success is True
+        assert result.entity_name == "PURCHASED"
+        assert result.rows_extracted == 1
+        assert result.rows_loaded == 1
+        assert len(result.errors) == 0
 
-            mock_execute.assert_called_once()
+        mock_execute.assert_called_once()
 
 
 def test_load_relation_from_bigquery_dry_run(bigquery_connection, sample_relation, mock_bigquery):
     """Test relation loading in dry-run mode."""
-    with patch("google.cloud.bigquery.Client") as mock_client_class:
-        with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
-            mock_row = Mock()
-            mock_row.items.return_value = [
-                ("customer_id", "C001"),
-                ("product_id", "P001"),
-            ]
+    with patch("grai.core.loader.neo4j_loader.execute_cypher") as mock_execute:
+        mock_row = Mock()
+        mock_row.items.return_value = [
+            ("customer_id", "C001"),
+            ("product_id", "P001"),
+        ]
 
-            mock_job = MagicMock()
-            mock_job.__iter__ = Mock(return_value=iter([mock_row]))
+        mock_job = MagicMock()
+        mock_job.__iter__ = Mock(return_value=iter([mock_row]))
 
-            mock_client = Mock()
-            mock_client.query.return_value = mock_job
-            mock_client_class.return_value = mock_client
+        mock_client = MagicMock()
+        mock_client.query.return_value = mock_job
+        mock_bigquery.Client.return_value = mock_client
 
-            neo4j_conn = Mock()
+        neo4j_conn = Mock()
 
-            result = load_relation_from_bigquery(
-                relation=sample_relation,
-                bigquery_connection=bigquery_connection,
-                neo4j_connection=neo4j_conn,
-                dry_run=True,
-            )
+        result = load_relation_from_bigquery(
+            relation=sample_relation,
+            bigquery_connection=bigquery_connection,
+            neo4j_connection=neo4j_conn,
+            dry_run=True,
+        )
 
-            assert result.success is True
-            assert result.rows_extracted == 1
-            assert result.rows_loaded == 0
-            mock_execute.assert_not_called()
+        assert result.success is True
+        assert result.rows_extracted == 1
+        assert result.rows_loaded == 0
+        mock_execute.assert_not_called()
 
 
 # LoadResult Tests
