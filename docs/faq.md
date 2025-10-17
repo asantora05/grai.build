@@ -32,11 +32,11 @@ Then use grai.build to ensure your graph schema is consistent and documented.
 
 | Feature           | dbt                                     | grai.build                         |
 | ----------------- | --------------------------------------- | ---------------------------------- |
-| **Database**      | SQL (Postgres, Snowflake, etc.)         | Graph (Neo4j, future: Gremlin)     |
+| **Database**      | SQL (PostgreSQL, Snowflake, etc.)       | Graph (Neo4j, future: Gremlin)     |
 | **Focus**         | Data transformation (SELECT statements) | Schema management + data loading   |
 | **Models**        | SQL files with Jinja                    | YAML files with entities/relations |
 | **Output**        | Tables/views                            | Graph nodes/edges                  |
-| **Data Loading**  | Via materialization                     | From BigQuery, Snowflake, etc.     |
+| **Data Loading**  | Via materialization                     | From BigQuery, PostgreSQL, etc.    |
 | **Documentation** | Yes (HTML docs)                         | Yes (HTML docs + visualizations)   |
 | **Lineage**       | Yes (SQL-based)                         | Yes (graph-based)                  |
 | **Testing**       | Yes (data quality tests)                | Yes (schema validation)            |
@@ -280,7 +280,7 @@ grai run --password yourpassword
 
 grai.build has **built-in data loading** for common sources. Here are your options:
 
-**1. Use `grai load` (recommended for BigQuery, Snowflake):**
+**1. Use `grai load` (recommended for BigQuery, PostgreSQL):**
 
 ```bash
 # Configure source in entity YAML
@@ -367,12 +367,12 @@ jobs:
 Currently:
 
 - ✅ **BigQuery** (load data from BigQuery tables)
+- ✅ **PostgreSQL** (load data from PostgreSQL databases)
 - ✅ **Manual Cypher** (write your own data loading scripts)
 
 Planned:
 
 - 🚧 Snowflake
-- 🚧 PostgreSQL
 - 🚧 CSV files
 - 🚧 Parquet files
 
@@ -416,7 +416,51 @@ keys: [customer_id]
 grai load customers --verbose
 ```
 
-See [Data Loading](data-loading.md) for details.
+### How do I load data from PostgreSQL?
+
+1. **Configure profile in `~/.grai/profiles.yml`:**
+
+```yaml
+default:
+  target: dev
+  outputs:
+    dev:
+      warehouse:
+        type: postgres
+        host: localhost
+        port: 5432
+        database: analytics
+        user: postgres
+        password: mypassword
+        schema: public
+        sslmode: prefer
+      graph:
+        type: neo4j
+        uri: bolt://localhost:7687
+        user: neo4j
+        password: neopass
+```
+
+2. **Set source in entity:**
+
+```yaml
+entity: customer
+source: customers # Table name
+keys: [customer_id]
+properties:
+  - name: customer_id
+    type: string
+  - name: name
+    type: string
+```
+
+3. **Load data:**
+
+```bash
+grai load entity customer --profile default --verbose
+```
+
+See [Profiles](profiles.md) and [Data Loading](data-loading.md) for details.
 
 ---
 

@@ -146,6 +146,64 @@ warehouse:
     # ... rest of service account JSON
 ```
 
+## PostgreSQL Configuration
+
+### Basic Configuration
+
+```yaml
+warehouse:
+  type: postgres
+  host: localhost
+  port: 5432
+  database: analytics
+  user: "{{ env_var('POSTGRES_USER') }}"
+  password: "{{ env_var('POSTGRES_PASSWORD') }}"
+  schema: public
+  sslmode: prefer
+```
+
+### SSL/TLS Configuration
+
+```yaml
+warehouse:
+  type: postgres
+  host: prod-postgres.example.com
+  port: 5432
+  database: analytics_prod
+  user: grai_user
+  password: "{{ env_var('POSTGRES_PASSWORD') }}"
+  schema: analytics
+  sslmode: require # Options: disable, allow, prefer, require, verify-ca, verify-full
+```
+
+### Amazon RDS PostgreSQL
+
+```yaml
+warehouse:
+  type: postgres
+  host: my-db.xxxxx.us-east-1.rds.amazonaws.com
+  port: 5432
+  database: production
+  user: "{{ env_var('RDS_USER') }}"
+  password: "{{ env_var('RDS_PASSWORD') }}"
+  schema: public
+  sslmode: require
+```
+
+### Google Cloud SQL PostgreSQL
+
+```yaml
+warehouse:
+  type: postgres
+  host: /cloudsql/project:region:instance # Unix socket path
+  port: 5432
+  database: analytics
+  user: postgres
+  password: "{{ env_var('CLOUDSQL_PASSWORD') }}"
+  schema: public
+  sslmode: disable # SSL handled by Cloud SQL Proxy
+```
+
 ## Snowflake Configuration
 
 ```yaml

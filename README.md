@@ -16,7 +16,7 @@ You define entities and relations in YAML, and grai.build:
 
 - ✅ **Validates** your schema for consistency
 - ✅ **Generates** Cypher constraints and indexes
-- ✅ **Loads data** from BigQuery, Snowflake, and other sources
+- ✅ **Loads data** from BigQuery, PostgreSQL, and other sources
 - ✅ **Documents** your graph structure automatically (like `dbt docs`)
 - ✅ **Tracks lineage** with interactive visualizations
 - ✅ **Integrates** with your CI/CD pipeline
@@ -24,7 +24,7 @@ You define entities and relations in YAML, and grai.build:
 **What it DOES:**
 
 - ✅ Schema management (constraints, indexes, validation)
-- ✅ Data loading from common sources (BigQuery, future: Snowflake, PostgreSQL, CSV)
+- ✅ Data loading from common sources (BigQuery, PostgreSQL, Snowflake coming soon)
 - ✅ Declarative YAML-based definitions
 - ✅ Documentation and lineage tracking
 

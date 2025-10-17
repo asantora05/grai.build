@@ -2,7 +2,7 @@
 Profile management for grai.build connections.
 
 Inspired by dbt's profiles.yml, this module handles connection configurations
-for data warehouses (BigQuery, Snowflake, etc.) and graph databases (Neo4j).
+for data warehouses (BigQuery, PostgreSQL, Snowflake, etc.) and graph databases (Neo4j).
 """
 
 import os
@@ -59,6 +59,31 @@ class SnowflakeProfile(BaseModel):
     )
 
     model_config = {"populate_by_name": True}
+
+
+class PostgresProfile(BaseModel):
+    """PostgreSQL connection profile."""
+
+    type: str = Field(default="postgres", frozen=True)
+    host: str = Field(..., description="PostgreSQL server hostname or IP")
+    port: int = Field(5432, description="PostgreSQL server port")
+    database: str = Field(..., description="Database name")
+    user: str = Field(..., description="Username for authentication")
+    password: Optional[str] = Field(None, description="Password for authentication")
+    schema: str = Field("public", description="Default schema")
+    sslmode: str = Field(
+        "prefer",
+        description="SSL mode: 'disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'",
+    )
+
+    @field_validator("sslmode")
+    @classmethod
+    def validate_sslmode(cls, v: str) -> str:
+        """Validate SSL mode."""
+        valid_modes = ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"]
+        if v not in valid_modes:
+            raise ValueError(f"Invalid sslmode '{v}'. Must be one of: {', '.join(valid_modes)}")
+        return v
 
 
 class Neo4jProfile(BaseModel):
@@ -216,7 +241,7 @@ def parse_warehouse_profile(config: Dict[str, Any]) -> Any:
         config: Warehouse configuration dictionary
 
     Returns:
-        Profile model (BigQueryProfile, SnowflakeProfile, etc.)
+        Profile model (BigQueryProfile, SnowflakeProfile, PostgresProfile, etc.)
 
     Raises:
         ValueError: If warehouse type is unsupported
@@ -227,10 +252,12 @@ def parse_warehouse_profile(config: Dict[str, Any]) -> Any:
         return BigQueryProfile(**config)
     elif warehouse_type == "snowflake":
         return SnowflakeProfile(**config)
+    elif warehouse_type == "postgres":
+        return PostgresProfile(**config)
     else:
         raise ValueError(
             f"Unsupported warehouse type: {warehouse_type}. "
-            f"Supported types: bigquery, snowflake"
+            f"Supported types: bigquery, snowflake, postgres"
         )
 
 

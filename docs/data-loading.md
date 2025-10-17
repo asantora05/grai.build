@@ -6,7 +6,7 @@ Complete guide for loading data into your graph database.
 
 ## 📖 Overview
 
-grai.build provides **built-in data loading** from common data sources like BigQuery, with plans for Snowflake, PostgreSQL, and CSV support.
+grai.build provides **built-in data loading** from common data sources like **BigQuery** and **PostgreSQL**, with plans for Snowflake and CSV support.
 
 While grai.build handles schema management AND data loading for typical use cases, it's designed to integrate with orchestration tools (Airflow, Prefect) for complex workflows. Think of it like dbt: it loads data, but you still need an orchestrator for scheduling and dependencies.
 
