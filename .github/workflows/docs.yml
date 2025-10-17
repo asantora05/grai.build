@@ -39,10 +39,54 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements-docs.txt
 
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Build MkDocs site
+        run: mkdocs build --clean --verbose
 
-      - name: Deploy documentation
-        run: mkdocs gh-deploy --force --clean --verbose
+      - name: Create Firebase configuration
+        run: |
+          cat > firebase.json << 'EOF'
+          {
+            "hosting": {
+              "public": "site",
+              "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+              ],
+              "cleanUrls": true,
+              "trailingSlash": false,
+              "rewrites": [
+                {
+                  "source": "**",
+                  "destination": "/404.html"
+                }
+              ],
+              "headers": [
+                {
+                  "source": "**/*.@(jpg|jpeg|gif|png|svg|webp)",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "max-age=604800"
+                    }
+                  ]
+                },
+                {
+                  "source": "**/*.@(css|js)",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "max-age=604800"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+          EOF
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}"

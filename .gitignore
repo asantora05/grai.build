@@ -70,5 +70,8 @@ docs/index.html
 # MkDocs build output (deployed via GitHub Actions)
 site/
 
+# Firebase configuration (generated in CI/CD workflow)
+firebase.json
+
 # Neo4j
 .neo4j/
