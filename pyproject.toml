@@ -36,6 +36,16 @@ dev = [
     "mypy>=1.5",
     "pre-commit>=3.0",
 ]
+bigquery = [
+    "google-cloud-bigquery>=3.0",
+]
+postgres = [
+    "psycopg2-binary>=2.9",
+]
+all-loaders = [
+    "google-cloud-bigquery>=3.0",
+    "psycopg2-binary>=2.9",
+]
 
 [project.scripts]
 grai = "grai.cli.main:main_cli"
