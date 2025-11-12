@@ -67,5 +67,8 @@ docs/relations.html
 docs/lineage.html
 docs/index.html
 
+# MkDocs build output
+site/
+
 # Neo4j
 .neo4j/
