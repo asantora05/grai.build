@@ -2537,6 +2537,293 @@ def _generate_lineage_html(project: Project, mermaid_diagram: str) -> str:
 """
 
 
+@app.command()
+def migrate_generate(
+    path: Path = typer.Argument(
+        Path("."),
+        help="Project directory.",
+    ),
+    message: Optional[str] = typer.Option(
+        None,
+        "--message",
+        "-m",
+        help="Migration description message.",
+    ),
+):
+    """
+    Generate a new migration from schema changes.
+
+    Compares current YAML schema with last migration state
+    and creates a new migration file with up/down scripts.
+    """
+    try:
+        from grai.core.migrations import MigrationGenerator
+
+        console.print("[bold blue]Generating migration...[/bold blue]")
+
+        # Load current project
+        project = load_project(path)
+
+        # Initialize generator
+        generator = MigrationGenerator(path)
+
+        # Generate migration
+        migration = generator.generate(
+            current_entities=project.entities,
+            current_relations=project.relations,
+            description=message,
+        )
+
+        if not migration.changes.has_changes():
+            console.print("[yellow]No schema changes detected. No migration created.[/yellow]")
+            return
+
+        # Save migration
+        filepath = generator.save_migration(migration)
+
+        console.print(f"[green]✓[/green] Migration created: {filepath.name}")
+        console.print(f"\n[bold]Changes:[/bold] {migration.changes.summary()}")
+        console.print(f"[dim]Version:[/dim] {migration.version}")
+        console.print(f"[dim]Up statements:[/dim] {len(migration.up_cypher)}")
+        console.print(f"[dim]Down statements:[/dim] {len(migration.down_cypher)}")
+
+    except Exception as e:
+        console.print(f"[red]✗ Error generating migration: {e}[/red]")
+        raise typer.Exit(1)
+
+
+@app.command()
+def migrate_status(
+    path: Path = typer.Argument(
+        Path("."),
+        help="Project directory.",
+    ),
+    uri: str = typer.Option(
+        "bolt://localhost:7687",
+        "--uri",
+        help="Neo4j connection URI.",
+    ),
+    user: str = typer.Option(
+        "neo4j",
+        "--user",
+        help="Neo4j username.",
+    ),
+    password: str = typer.Option(
+        ...,
+        "--password",
+        prompt=True,
+        hide_input=True,
+        help="Neo4j password.",
+    ),
+):
+    """
+    Show migration status (pending and applied).
+
+    Lists all migrations and their application status.
+    """
+    try:
+        from neo4j import GraphDatabase
+
+        from grai.core.migrations import MigrationExecutor
+
+        console.print("[bold blue]Checking migration status...[/bold blue]\n")
+
+        # Connect to Neo4j
+        driver = GraphDatabase.driver(uri, auth=(user, password))
+
+        try:
+            executor = MigrationExecutor(driver, path)
+
+            # Get migration info
+            pending = executor.get_pending_migrations()
+            history = executor.get_migration_history()
+
+            # Show applied migrations
+            if history:
+                console.print("[bold green]Applied Migrations:[/bold green]")
+                table = Table()
+                table.add_column("Version", style="cyan")
+                table.add_column("Description")
+                table.add_column("Status")
+                table.add_column("Applied At")
+
+                for h in history:
+                    status_color = "green" if h.status.value == "applied" else "red"
+                    table.add_row(
+                        h.version,
+                        h.description[:50],
+                        f"[{status_color}]{h.status.value}[/{status_color}]",
+                        h.applied_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    )
+
+                console.print(table)
+                console.print()
+
+            # Show pending migrations
+            if pending:
+                console.print(f"[bold yellow]Pending Migrations: {len(pending)}[/bold yellow]")
+                for migration in pending:
+                    console.print(f"  • {migration.version}: {migration.description}")
+            else:
+                console.print("[green]✓ No pending migrations[/green]")
+
+        finally:
+            driver.close()
+
+    except Exception as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+        raise typer.Exit(1)
+
+
+@app.command()
+def migrate_apply(
+    path: Path = typer.Argument(
+        Path("."),
+        help="Project directory.",
+    ),
+    uri: str = typer.Option(
+        "bolt://localhost:7687",
+        "--uri",
+        help="Neo4j connection URI.",
+    ),
+    user: str = typer.Option(
+        "neo4j",
+        "--user",
+        help="Neo4j username.",
+    ),
+    password: str = typer.Option(
+        ...,
+        "--password",
+        prompt=True,
+        hide_input=True,
+        help="Neo4j password.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Validate migrations without applying.",
+    ),
+):
+    """
+    Apply pending migrations to Neo4j.
+
+    Executes all pending migration scripts in order.
+    """
+    try:
+        from neo4j import GraphDatabase
+
+        from grai.core.migrations import MigrationExecutor
+
+        mode = "dry run" if dry_run else "applying"
+        console.print(f"[bold blue]Migrations {mode}...[/bold blue]\n")
+
+        # Connect to Neo4j
+        driver = GraphDatabase.driver(uri, auth=(user, password))
+
+        try:
+            executor = MigrationExecutor(driver, path)
+
+            # Get pending migrations
+            pending = executor.get_pending_migrations()
+
+            if not pending:
+                console.print("[green]✓ No pending migrations[/green]")
+                return
+
+            console.print(f"Found {len(pending)} pending migration(s):\n")
+
+            # Apply migrations
+            for migration in pending:
+                console.print(f"• {migration.version}: {migration.description}")
+                console.print(f"  [dim]Statements: {len(migration.up_cypher)}[/dim]")
+
+                if not dry_run:
+                    result = executor.apply_migration(migration)
+
+                    if result.status.value == "applied":
+                        console.print(
+                            f"  [green]✓ Applied in {result.execution_time_ms}ms[/green]\n"
+                        )
+                    else:
+                        console.print(f"  [red]✗ Failed: {result.error_message}[/red]\n")
+                        break
+                else:
+                    console.print("  [yellow]↺ Validated (not applied)[/yellow]\n")
+
+            if dry_run:
+                console.print("[yellow]Dry run complete. No changes made.[/yellow]")
+            else:
+                console.print("[green]✓ All migrations applied successfully[/green]")
+
+        finally:
+            driver.close()
+
+    except Exception as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+        raise typer.Exit(1)
+
+
+@app.command()
+def migrate_rollback(
+    path: Path = typer.Argument(
+        Path("."),
+        help="Project directory.",
+    ),
+    uri: str = typer.Option(
+        "bolt://localhost:7687",
+        "--uri",
+        help="Neo4j connection URI.",
+    ),
+    user: str = typer.Option(
+        "neo4j",
+        "--user",
+        help="Neo4j username.",
+    ),
+    password: str = typer.Option(
+        ...,
+        "--password",
+        prompt=True,
+        hide_input=True,
+        help="Neo4j password.",
+    ),
+    version: Optional[str] = typer.Option(
+        None,
+        "--version",
+        help="Specific version to rollback (default: last migration).",
+    ),
+):
+    """
+    Rollback a migration using its down script.
+
+    Rolls back the last applied migration or a specific version.
+    """
+    try:
+        from neo4j import GraphDatabase
+
+        from grai.core.migrations import MigrationExecutor
+
+        console.print("[bold yellow]Rolling back migration...[/bold yellow]\n")
+
+        # Connect to Neo4j
+        driver = GraphDatabase.driver(uri, auth=(user, password))
+
+        try:
+            executor = MigrationExecutor(driver, path)
+
+            # Rollback
+            result = executor.rollback_migration(version)
+
+            console.print(f"[green]✓[/green] Rolled back migration {result.version}")
+            console.print(f"[dim]Time: {result.execution_time_ms}ms[/dim]")
+
+        finally:
+            driver.close()
+
+    except Exception as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+        raise typer.Exit(1)
+
+
 def main_cli():
     """Entry point for the CLI."""
     app()
