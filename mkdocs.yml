@@ -126,6 +126,7 @@ nav:
   - User Guide:
       - CLI Reference: CLI.md
       - CLI Usage: CLI_USAGE.md
+      - Schema Migrations: MIGRATIONS.md
       - Parser: PARSER.md
       - Validator: VALIDATOR.md
       - Compiler: COMPILER.md
