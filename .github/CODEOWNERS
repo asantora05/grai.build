@@ -1,0 +1,20 @@
+# Code Owners for grai.build
+# These users will be automatically requested for review on PRs
+
+# Default owner for everything
+* @asantora05
+
+# Core modules
+/grai/core/ @asantora05
+/grai/cli/ @asantora05
+
+# Tests
+/tests/ @asantora05
+
+# Documentation
+/docs/ @asantora05
+*.md @asantora05
+
+# CI/CD and config
+/.github/ @asantora05
+pyproject.toml @asantora05
