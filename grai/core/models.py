@@ -206,6 +206,16 @@ class Entity(BaseModel):
             return self.source
         return SourceConfig.from_string(str(self.source))
 
+    @property
+    def name(self) -> str:
+        """
+        Alias for entity name for convenience.
+
+        Returns:
+            Entity name.
+        """
+        return self.entity
+
 
 class RelationMapping(BaseModel):
     """
@@ -299,6 +309,16 @@ class Relation(BaseModel):
         if isinstance(self.source, SourceConfig):
             return self.source
         return SourceConfig.from_string(str(self.source))
+
+    @property
+    def name(self) -> str:
+        """
+        Alias for relation name for convenience.
+
+        Returns:
+            Relation name.
+        """
+        return self.relation
 
 
 class Project(BaseModel):
