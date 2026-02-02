@@ -1,0 +1,89 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear description of the bug
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run `grai init my-project`
+        2. Create entity file with...
+        3. Run `grai validate`
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: schema
+    attributes:
+      label: Schema Files (if applicable)
+      description: Share relevant YAML schema files
+      render: yaml
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Output / Logs
+      description: Paste any error messages or logs
+      render: shell
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: grai.build Version
+      description: What version are you using?
+      options:
+        - 0.3.2
+        - 0.3.1
+        - 0.3.0
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: python
+    attributes:
+      label: Python Version
+      options:
+        - "3.12"
+        - "3.11"
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other
+    validations:
+      required: true
