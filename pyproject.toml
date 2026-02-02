@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=68.0", "wheel", "setuptools-scm>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "grai-build"
-version = "0.3.3"
+dynamic = ["version"]
 description = "Declarative knowledge graph modeling tool inspired by dbt"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -70,3 +70,7 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --cov=grai --cov-report=term-missing"
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
