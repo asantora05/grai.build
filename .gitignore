@@ -33,6 +33,7 @@ ENV/
 *.swo
 *~
 .github/instructions/
+CLAUDE.md
 
 # Testing
 .pytest_cache/

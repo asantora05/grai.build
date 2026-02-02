@@ -292,14 +292,14 @@ For development guidance, check out the [instructions](.github/instructions/inst
 - [x] Graph IR export (JSON)
 - [x] Documentation generation (dbt-style)
 - [x] Lineage visualization (Mermaid + D3.js)
+- [x] Schema versioning and migrations
 - [ ] Graph visualization improvements
 - [ ] Gremlin backend support
 - [ ] Incremental sync
-- [ ] Schema versioning and migrations
 
 ## 📊 Current Status
 
-**v0.3.0** - Feature-complete MVP with documentation
+**v0.3.2** - Feature-complete MVP with migrations
 
 - ✅ **Core Models** - Pydantic models for Entity, Relation, Property
 - ✅ **YAML Parser** - Parse and load entity/relation definitions

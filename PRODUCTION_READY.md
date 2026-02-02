@@ -165,7 +165,7 @@ After v0.3.0 release:
 
 For v0.4.0 and beyond:
 
-- [ ] Schema versioning and migrations
+- [x] Schema versioning and migrations
 - [ ] Support for Gremlin/TinkerPop
 - [ ] Advanced visualization options
 - [ ] Performance benchmarking
