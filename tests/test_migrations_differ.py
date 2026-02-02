@@ -363,3 +363,273 @@ def test_diff_keys_changed():
     assert changes.entities[0].keys_changed
     assert changes.entities[0].old_keys == ["customer_id"]
     assert changes.entities[0].new_keys == ["customer_id", "email"]
+
+
+def test_diff_modified_relation_properties():
+    """Test detecting modified relation properties."""
+    from grai.core.models import RelationMapping
+
+    old_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="order_id", type=PropertyType.STRING),
+            Property(name="quantity", type=PropertyType.STRING),
+        ],
+    )
+
+    new_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="order_id", type=PropertyType.STRING),
+            Property(name="quantity", type=PropertyType.INTEGER),  # Type changed
+        ],
+    )
+
+    changes = diff_schemas(
+        old_entities=[],
+        old_relations=[old_relation],
+        new_entities=[],
+        new_relations=[new_relation],
+    )
+
+    assert changes.has_changes()
+    assert len(changes.relations) == 1
+    assert changes.relations[0].change_type == ChangeType.MODIFIED
+    assert len(changes.relations[0].properties_modified) == 1
+    assert changes.relations[0].properties_modified[0].name == "quantity"
+    assert changes.relations[0].properties_modified[0].old_type == "string"
+    assert changes.relations[0].properties_modified[0].new_type == "integer"
+
+
+def test_diff_relation_added_property():
+    """Test detecting added property on relation."""
+    from grai.core.models import RelationMapping
+
+    old_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="order_id", type=PropertyType.STRING),
+        ],
+    )
+
+    new_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="order_id", type=PropertyType.STRING),
+            Property(name="quantity", type=PropertyType.INTEGER),  # Added
+        ],
+    )
+
+    changes = diff_schemas(
+        old_entities=[],
+        old_relations=[old_relation],
+        new_entities=[],
+        new_relations=[new_relation],
+    )
+
+    assert changes.has_changes()
+    assert len(changes.relations) == 1
+    assert changes.relations[0].change_type == ChangeType.MODIFIED
+    assert len(changes.relations[0].properties_added) == 1
+    assert changes.relations[0].properties_added[0]["name"] == "quantity"
+
+
+def test_diff_relation_removed_property():
+    """Test detecting removed property on relation."""
+    from grai.core.models import RelationMapping
+
+    old_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="order_id", type=PropertyType.STRING),
+            Property(name="quantity", type=PropertyType.INTEGER),
+        ],
+    )
+
+    new_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="order_id", type=PropertyType.STRING),
+            # quantity removed
+        ],
+    )
+
+    changes = diff_schemas(
+        old_entities=[],
+        old_relations=[old_relation],
+        new_entities=[],
+        new_relations=[new_relation],
+    )
+
+    assert changes.has_changes()
+    assert len(changes.relations) == 1
+    assert changes.relations[0].change_type == ChangeType.MODIFIED
+    assert len(changes.relations[0].properties_removed) == 1
+    assert changes.relations[0].properties_removed[0] == "quantity"
+
+
+def test_diff_relation_from_entity_changed():
+    """Test detecting changed from_entity on relation."""
+    from grai.core.models import RelationMapping
+
+    old_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[],
+    )
+
+    new_relation = Relation(
+        relation="PURCHASED",
+        from_entity="user",  # Changed from customer to user
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="user_id", to_key="product_id"),
+        properties=[],
+    )
+
+    changes = diff_schemas(
+        old_entities=[],
+        old_relations=[old_relation],
+        new_entities=[],
+        new_relations=[new_relation],
+    )
+
+    assert changes.has_changes()
+    assert len(changes.relations) == 1
+    assert changes.relations[0].change_type == ChangeType.MODIFIED
+    assert changes.relations[0].from_entity_changed
+    assert changes.relations[0].old_from == "customer"
+    assert changes.relations[0].new_from == "user"
+
+
+def test_diff_relation_to_entity_changed():
+    """Test detecting changed to_entity on relation."""
+    from grai.core.models import RelationMapping
+
+    old_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[],
+    )
+
+    new_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="item",  # Changed from product to item
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="item_id"),
+        properties=[],
+    )
+
+    changes = diff_schemas(
+        old_entities=[],
+        old_relations=[old_relation],
+        new_entities=[],
+        new_relations=[new_relation],
+    )
+
+    assert changes.has_changes()
+    assert len(changes.relations) == 1
+    assert changes.relations[0].change_type == ChangeType.MODIFIED
+    assert changes.relations[0].to_entity_changed
+    assert changes.relations[0].old_to == "product"
+    assert changes.relations[0].new_to == "item"
+
+
+def test_diff_relation_no_changes():
+    """Test that identical relations produce no changes."""
+    from grai.core.models import RelationMapping
+
+    relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="order_id", type=PropertyType.STRING),
+        ],
+    )
+
+    changes = diff_schemas(
+        old_entities=[],
+        old_relations=[relation],
+        new_entities=[],
+        new_relations=[relation],
+    )
+
+    assert not changes.has_changes()
+    assert len(changes.relations) == 0
+
+
+def test_diff_relation_required_changed():
+    """Test detecting required status change on relation property."""
+    from grai.core.models import RelationMapping
+
+    old_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="quantity", type=PropertyType.INTEGER, required=False),
+        ],
+    )
+
+    new_relation = Relation(
+        relation="PURCHASED",
+        from_entity="customer",
+        to_entity="product",
+        source="orders",
+        mappings=RelationMapping(from_key="customer_id", to_key="product_id"),
+        properties=[
+            Property(name="quantity", type=PropertyType.INTEGER, required=True),
+        ],
+    )
+
+    changes = diff_schemas(
+        old_entities=[],
+        old_relations=[old_relation],
+        new_entities=[],
+        new_relations=[new_relation],
+    )
+
+    assert changes.has_changes()
+    assert len(changes.relations) == 1
+    assert changes.relations[0].change_type == ChangeType.MODIFIED
+    assert len(changes.relations[0].properties_modified) == 1
+    prop = changes.relations[0].properties_modified[0]
+    assert prop.name == "quantity"
+    assert prop.old_required is False
+    assert prop.new_required is True

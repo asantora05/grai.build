@@ -69,7 +69,7 @@ class SchemaDiffer:
                     EntityChange(
                         name=name,
                         change_type=ChangeType.ADDED,
-                        properties_added=[p.model_dump() for p in entity.properties],
+                        properties_added=[p.model_dump(mode="json") for p in entity.properties],
                         new_keys=entity.keys,
                     )
                 )
@@ -112,7 +112,7 @@ class SchemaDiffer:
         # Find added properties
         for name, prop in new_props.items():
             if name not in old_props:
-                properties_added.append(prop.model_dump())
+                properties_added.append(prop.model_dump(mode="json"))
 
         # Find removed properties
         for name in old_props:
@@ -167,7 +167,7 @@ class SchemaDiffer:
                         change_type=ChangeType.ADDED,
                         new_from=relation.from_entity,
                         new_to=relation.to_entity,
-                        properties_added=[p.model_dump() for p in relation.properties],
+                        properties_added=[p.model_dump(mode="json") for p in relation.properties],
                     )
                 )
 
@@ -210,7 +210,7 @@ class SchemaDiffer:
         # Find added properties
         for name, prop in new_props.items():
             if name not in old_props:
-                properties_added.append(prop.model_dump())
+                properties_added.append(prop.model_dump(mode="json"))
 
         # Find removed properties
         for name in old_props:
