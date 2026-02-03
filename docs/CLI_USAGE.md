@@ -1,10 +1,10 @@
-# 📘 CLI Usage Guide
+# CLI Usage Guide
 
 Complete reference for the grai.build command-line interface.
 
 ---
 
-## 🎯 Overview
+## Overview
 
 The `grai` CLI provides commands for managing knowledge graph projects:
 
@@ -15,7 +15,7 @@ grai --version # Show version
 
 ---
 
-## 📋 Commands
+## Commands
 
 ### `grai init` - Initialize a New Project
 
@@ -107,12 +107,12 @@ grai validate /path/to/project
 
 **What it checks:**
 
-- ✅ Entity references exist
-- ✅ Key mappings are valid
-- ✅ No duplicate properties
-- ✅ No circular dependencies
-- ✅ Required fields present
-- ✅ Valid data types
+- Entity references exist
+- Key mappings are valid
+- No duplicate properties
+- No circular dependencies
+- Required fields present
+- Valid data types
 
 ---
 
@@ -466,7 +466,66 @@ grai visualize --output my-graph.html --open
 
 ---
 
-## 🔄 Common Workflows
+### `grai docs` - Generate Documentation
+
+Generate interactive HTML documentation for your project.
+
+```bash
+cd my-graph-project
+grai docs --serve
+```
+
+**Options:**
+
+- `--serve` - Start local server and open in browser
+- `--output, -o` - Output directory (default: `target/docs`)
+- `project_dir` - Path to project directory (default: `.`)
+
+**Examples:**
+
+```bash
+# Generate and serve documentation
+grai docs --serve
+
+# Generate to custom directory
+grai docs --output ./documentation
+```
+
+---
+
+### `grai migrate-*` - Schema Migrations
+
+Manage schema changes over time with version-controlled migrations.
+
+**Generate a migration:**
+
+```bash
+grai migrate-generate --message "Add email to customer"
+```
+
+**Check migration status:**
+
+```bash
+grai migrate-status --uri bolt://localhost:7687 --password secret
+```
+
+**Apply pending migrations:**
+
+```bash
+grai migrate-apply --uri bolt://localhost:7687 --password secret
+```
+
+**Rollback last migration:**
+
+```bash
+grai migrate-rollback --uri bolt://localhost:7687 --password secret
+```
+
+See [Schema Migrations](MIGRATIONS.md) for complete documentation.
+
+---
+
+## Common Workflows
 
 ### Create New Project
 
@@ -545,17 +604,16 @@ grai visualize --format cytoscape --output graph-cytoscape.html
 
 ---
 
-## 💡 Tips
+## Tips
 
 ### 1. Always initialize in an empty directory
 
 ```bash
-# ✅ Good
+# Recommended
 mkdir my-graph && cd my-graph && grai init
 
-# ❌ Bad
+# Not recommended (could overwrite files - use --force if intentional)
 cd existing-project-with-files && grai init
-# (Could overwrite files - use --force if intentional)
 ```
 
 ### 2. Use --dry-run for testing
@@ -596,7 +654,7 @@ grai run
 
 ---
 
-## 🆘 Getting Help
+## Getting Help
 
 ```bash
 # General help
@@ -616,7 +674,7 @@ grai visualize --help
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - [GETTING_STARTED.md](GETTING_STARTED.md) - Complete beginner's guide
 - [NEO4J_SETUP.md](NEO4J_SETUP.md) - Neo4j installation and setup
@@ -626,7 +684,3 @@ grai visualize --help
 - [VISUALIZER.md](VISUALIZER.md) - Visualization options
 - [LINEAGE.md](LINEAGE.md) - Lineage tracking guide
 - [CACHE.md](CACHE.md) - Incremental build system
-
----
-
-**📝 Note:** This document reflects the current CLI implementation. Some features may be added or changed in future versions.

@@ -1,168 +1,60 @@
-# 🚀 Getting Started with grai.build
+# Getting Started
 
-Complete guide for using grai.build from any directory as a real user.
+This guide walks through creating your first grai.build project.
 
----
+## Prerequisites
 
-## 📋 Prerequisites
+- Python 3.11+
+- Neo4j running locally or accessible remotely (see [Neo4j Setup](NEO4J_SETUP.md))
 
-- Python 3.11+ installed
-- grai-build package installed
-- Neo4j running (see [NEO4J_SETUP.md](NEO4J_SETUP.md) for details)
-
----
-
-## ✅ Step 1: Verify Installation
-
-First, make sure grai is installed and working:
-
-````bash
-# Check if ## 📊 Step 8: Load Sample Data
-
-Go**For now, stick with the default schema-only mode.** To load actual data, use the provided CSV files and loading script (see next section).
-
----
-
-## Alternative: Manual Data Loading
-
-If you want to create data programmatically instead of using CSV files, create a Python script:! `grai init` already created sample CSV files and a Cypher loading script for you.
-
-### Quick Load (Recommended)
-
-The easiest way to load data is using the provided Cypher script:
+## Installation
 
 ```bash
-# Option 1: Neo4j Browser (easiest)
-# 1. Open http://localhost:7474
-# 2. Copy and paste the contents of load_data.cypher
-# 3. Click "Run"
-
-# Option 2: cypher-shell (from terminal)
-cat load_data.cypher | cypher-shell -u neo4j -p graipassword
-````
-
-**Expected output (from Neo4j Browser):**
-
-The script will:
-
-- Load 5 customers
-- Load 6 products
-- Create 10 purchase relationships
-- Show verification queries with counts and sample data
-
-You should see output like:
-
-```
-Added 5 nodes
-Added 6 nodes
-Created 10 relationships
-```
-
-### Manual Load (Alternative)
-
-If you prefer to create your own loading script:
-
-```bash
-cat > my_loader.py << 'EOF's installed
-which grai
-
-# Check version
-grai --version
-
-# Should output: grai.build version 0.1.0
-```
-
-If not installed, install it:
-
-```bash
-# For development (editable install)
-cd /path/to/grai.build/repo
-pip install -e .
-
-# Or for production use (from PyPI when published)
 pip install grai-build
 ```
 
----
-
-## 📂 Step 2: Create Your Project Directory
-
-Create a new project directory **outside the grai.build source repo**:
+Verify installation:
 
 ```bash
-# Create and navigate to your project directory (can be anywhere)
-mkdir -p ~/my-projects/ecommerce-graph
-cd ~/my-projects/ecommerce-graph
+grai --version
+grai --help
 ```
 
-**Important:** Always create the directory first and then `cd` into it. This matches the workflow of tools like `npm init`, `git init`, and `cargo init`.
+## Create a Project
 
----
+### Initialize
 
-## 🎬 Step 3: Initialize Project
-
-### Option A: Use `grai init` (Recommended)
-
-Initialize the project **in the current directory**:
+Create a new project directory and initialize:
 
 ```bash
-# Make sure you're in your project directory
-cd ~/my-projects/ecommerce-graph
-
-# Initialize here (creates files in current directory)
+mkdir my-graph-project
+cd my-graph-project
 grai init
 ```
 
-This creates files in the current directory:
+This creates:
 
 ```
-~/my-projects/ecommerce-graph/  (your current directory)
-├── grai.yml
+my-graph-project/
+├── grai.yml              # Project configuration
 ├── entities/
-│   ├── customer.yml
+│   ├── customer.yml      # Sample entity
 │   └── product.yml
 ├── relations/
-│   └── purchased.yml
-├── data/                  # NEW: Sample CSV files!
-│   ├── customers.csv     # 5 sample customers
-│   ├── products.csv      # 6 sample products
-│   └── purchased.csv     # 10 sample orders
-├── load_data.cypher      # NEW: Data loading Cypher script
-├── README.md
-└── target/
+│   └── purchased.yml     # Sample relation
+├── data/                 # Sample CSV data
+│   ├── customers.csv
+│   ├── products.csv
+│   └── purchased.csv
+└── target/               # Compiled output
 ```
 
-**What's included:**
+### Project Configuration
 
-- ✅ Entity and relation YAML definitions
-- ✅ Sample CSV files with realistic data
-- ✅ Ready-to-use Cypher script for loading data (just copy/paste into Neo4j Browser)
-- ✅ Documentation and examples
+The `grai.yml` file configures your project:
 
-**Alternative usage:**
-
-```bash
-# Initialize with a custom project name
-grai init --name my-custom-name
-
-# Initialize in a different directory
-grai init /path/to/project
-
-# Force overwrite existing files
-grai init --force
-```
-
-### Option B: Manual Setup
-
-If you prefer manual setup, create the structure manually:
-
-```bash
-# Create directories
-mkdir -p entities relations target/neo4j
-
-# Create grai.yml
-cat > grai.yml << 'EOF'
-name: ecommerce-graph
+```yaml
+name: my-graph-project
 version: 1.0.0
 
 config:
@@ -170,7 +62,6 @@ config:
     uri: bolt://localhost:7687
     database: neo4j
     user: neo4j
-    password: graipassword
 
   compiler:
     backend: neo4j
@@ -178,10 +69,16 @@ config:
 
   validator:
     strict_mode: true
-EOF
+```
 
-# Create an example entity
-cat > entities/customer.yml << 'EOF'
+## Define Your Schema
+
+### Entities
+
+Entities represent nodes in your graph. Create YAML files in the `entities/` directory:
+
+```yaml
+# entities/customer.yml
 entity: customer
 source: analytics.customers
 keys: [customer_id]
@@ -192,30 +89,16 @@ properties:
     type: string
   - name: email
     type: string
-  - name: region
-    type: string
   - name: created_at
     type: datetime
-EOF
+```
 
-# Create another entity
-cat > entities/product.yml << 'EOF'
-entity: product
-source: catalog.products
-keys: [product_id]
-properties:
-  - name: product_id
-    type: string
-  - name: name
-    type: string
-  - name: category
-    type: string
-  - name: price
-    type: float
-EOF
+### Relations
 
-# Create a relation
-cat > relations/purchased.yml << 'EOF'
+Relations represent edges between entities. Create YAML files in the `relations/` directory:
+
+```yaml
+# relations/purchased.yml
 relation: PURCHASED
 from: customer
 to: product
@@ -230,637 +113,202 @@ properties:
     type: datetime
   - name: quantity
     type: integer
-  - name: total_amount
-    type: float
-EOF
 ```
 
----
+### Property Types
 
-## 🔍 Step 4: Validate Your Project
+Supported property types:
+
+| Type | Description |
+|------|-------------|
+| `string` | Text values |
+| `integer` | Whole numbers |
+| `float` | Decimal numbers |
+| `boolean` | True/false |
+| `date` | Date without time |
+| `datetime` | Date with time |
+| `json` | JSON objects |
+
+## Build and Deploy
+
+### Validate
+
+Check your schema for errors:
 
 ```bash
-# Make sure you're in your project directory
-cd ~/my-projects/ecommerce-graph
-
-# Validate the project
 grai validate
 ```
 
-**Expected output:**
+### Build
 
-```
-✅ Project validated successfully
-   Entities: 2
-   Relations: 1
-   Properties: 9
-```
-
----
-
-## 🔨 Step 5: Build (Compile to Cypher)
+Compile to Cypher:
 
 ```bash
-# Compile to Cypher without executing
 grai build
 ```
 
-**Expected output:**
-
-```
-✅ Project validated successfully
-📦 Compiling project...
-✅ Compiled 2 entities and 1 relation
-📁 Output written to: target/neo4j/compiled.cypher
-```
-
-**View the compiled Cypher:**
+View the output:
 
 ```bash
 cat target/neo4j/compiled.cypher
 ```
 
-You should see Cypher statements like:
+### Deploy to Neo4j
 
-```cypher
-// Create customer nodes
-MERGE (n:customer {customer_id: row.customer_id})
-SET n.name = row.name,
-    n.email = row.email,
-    n.region = row.region,
-    n.created_at = row.created_at;
-
-// Create product nodes
-MERGE (n:product {product_id: row.product_id})
-SET n.name = row.name,
-    n.category = row.category,
-    n.price = row.price;
-
-// Create PURCHASED relations
-MATCH (from:customer {customer_id: row.customer_id})
-MATCH (to:product {product_id: row.product_id})
-MERGE (from)-[r:PURCHASED]->(to)
-SET r.order_id = row.order_id,
-    r.order_date = row.order_date,
-    r.quantity = row.quantity,
-    r.total_amount = row.total_amount;
-```
-
----
-
-## 🚀 Step 6: Create the Schema in Neo4j
-
-**Prerequisites:**
-
-- Neo4j must be running (see [NEO4J_SETUP.md](NEO4J_SETUP.md))
-- You have connection credentials
+Execute against your database:
 
 ```bash
-# Create schema (constraints and indexes only)
 grai run \
   --uri bolt://localhost:7687 \
   --user neo4j \
-  --password graipassword
+  --password your-password
 ```
 
-**What this does:**
+Options:
 
-By default, `grai run` creates only the **schema** (constraints and indexes) without attempting to load data. This is perfect for getting started, as it doesn't require CSV files or data sources.
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Preview without executing |
+| `--schema-only` | Create constraints/indexes only |
+| `--load-csv` | Load sample data from CSV files |
+| `--verbose` | Show detailed output |
 
-**Expected output:**
+### Load Sample Data
 
-```
-✅ Project validated successfully
-📦 Compiling project...
-✅ Compiled 2 entities and 1 relation
-📁 Output written to: target/neo4j/compiled.cypher
-🔌 Connecting to Neo4j at bolt://localhost:7687...
-✅ Connected successfully
-⚡ Executing Cypher statements...
-✅ Executed 10 statements successfully
-📊 Records affected: 0
-⏱️  Execution time: 0.13s
-```
-
-The generated Cypher looks like this:
-
-```cypher
-// Create constraints for unique keys
-CREATE CONSTRAINT constraint_customer_customer_id IF NOT EXISTS
-FOR (n:customer) REQUIRE n.customer_id IS UNIQUE;
-
-CREATE CONSTRAINT constraint_product_product_id IF NOT EXISTS
-FOR (n:product) REQUIRE n.product_id IS UNIQUE;
-
-// Create indexes for faster lookups
-CREATE INDEX index_customer_name IF NOT EXISTS
-FOR (n:customer) ON (n.name);
-
-CREATE INDEX index_customer_email IF NOT EXISTS
-FOR (n:customer) ON (n.email);
-// ... and so on
-```
-
----
-
-## 🌐 Step 7: Verify Schema in Neo4j Browser
-
-Open Neo4j Browser: http://localhost:7474
-
-Login with:
-
-- Username: `neo4j`
-- Password: `graipassword`
-
-Check the constraints:
-
-```cypher
-SHOW CONSTRAINTS
-```
-
-Check the indexes:
-
-```cypher
-SHOW INDEXES
-```
-
-You should see all the constraints and indexes defined in your project. The schema is ready, but no data has been loaded yet.
-
----
-
-## � Understanding Data Loading
-
-The `grai run` command has two modes:
-
-### Mode 1: Schema Only (Default)
+If you want to load the sample CSV data:
 
 ```bash
-grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
+grai run --load-csv --password your-password
 ```
 
-Creates only constraints and indexes. This is the **recommended starting point** as it doesn't require any data files.
+Or use Neo4j Browser to run the generated `load_data.cypher` script.
 
-### Mode 2: With Data (Requires CSV Files)
+## Generate Documentation
+
+Create interactive HTML documentation:
 
 ```bash
-grai run --with-data --uri bolt://localhost:7687 --user neo4j --password graipassword
+grai docs --serve
 ```
 
-Generates MERGE statements with `row.property` placeholders, which are designed to be used with `LOAD CSV` statements. This mode will fail unless you've prepared CSV files and modified the Cypher to include LOAD CSV context.
+This opens a browser with:
 
-**For now, stick with the default schema-only mode.** To load actual data, use Python scripts (see next section).
+- Project overview
+- Entity catalog
+- Relation catalog
+- Interactive graph visualization
+- Lineage diagrams
 
----
+## Visualization
 
-## �📊 Step 8: Load Sample Data
-
-Create a script to load test data:
-
-```bash
-cat > load_data.py << 'EOF'
-"""Load sample data into the graph."""
-from grai.core.loader.neo4j_loader import (
-    connect_neo4j,
-    execute_cypher,
-    close_connection,
-)
-
-# Connection details
-URI = "bolt://localhost:7687"
-USER = "neo4j"
-PASSWORD = "graipassword"
-
-# Sample data
-DATA = """
-// Create customers
-CREATE (c1:customer {
-    customer_id: 'C001',
-    name: 'Alice Johnson',
-    email: 'alice@example.com',
-    region: 'US-West',
-    created_at: datetime('2024-01-15')
-});
-CREATE (c2:customer {
-    customer_id: 'C002',
-    name: 'Bob Smith',
-    email: 'bob@example.com',
-    region: 'US-East',
-    created_at: datetime('2024-02-01')
-});
-CREATE (c3:customer {
-    customer_id: 'C003',
-    name: 'Carol Williams',
-    email: 'carol@example.com',
-    region: 'EU',
-    created_at: datetime('2024-02-15')
-});
-
-// Create products
-CREATE (p1:product {
-    product_id: 'P001',
-    name: 'Laptop Pro 15',
-    category: 'Electronics',
-    price: 1299.99
-});
-CREATE (p2:product {
-    product_id: 'P002',
-    name: 'Wireless Mouse',
-    category: 'Accessories',
-    price: 29.99
-});
-CREATE (p3:product {
-    product_id: 'P003',
-    name: 'USB-C Hub',
-    category: 'Accessories',
-    price: 49.99
-});
-CREATE (p4:product {
-    product_id: 'P004',
-    name: 'Monitor 27"',
-    category: 'Electronics',
-    price: 399.99
-});
-
-// Create purchases
-MATCH (c:customer {customer_id: 'C001'})
-MATCH (p:product {product_id: 'P001'})
-CREATE (c)-[:PURCHASED {
-    order_id: 'O001',
-    order_date: datetime('2024-03-01'),
-    quantity: 1,
-    total_amount: 1299.99
-}]->(p);
-
-MATCH (c:customer {customer_id: 'C001'})
-MATCH (p:product {product_id: 'P002'})
-CREATE (c)-[:PURCHASED {
-    order_id: 'O002',
-    order_date: datetime('2024-03-01'),
-    quantity: 2,
-    total_amount: 59.98
-}]->(p);
-
-MATCH (c:customer {customer_id: 'C002'})
-MATCH (p:product {product_id: 'P003'})
-CREATE (c)-[:PURCHASED {
-    order_id: 'O003',
-    order_date: datetime('2024-03-15'),
-    quantity: 1,
-    total_amount: 49.99
-}]->(p);
-
-MATCH (c:customer {customer_id: 'C003'})
-MATCH (p:product {product_id: 'P001'})
-CREATE (c)-[:PURCHASED {
-    order_id: 'O004',
-    order_date: datetime('2024-03-20'),
-    quantity: 1,
-    total_amount: 1299.99
-}]->(p);
-
-MATCH (c:customer {customer_id: 'C003'})
-MATCH (p:product {product_id: 'P004'})
-CREATE (c)-[:PURCHASED {
-    order_id: 'O005',
-    order_date: datetime('2024-03-20'),
-    quantity: 1,
-    total_amount: 399.99
-}]->(p);
-"""
-
-def main():
-    print("📦 Loading sample data...")
-
-    driver = connect_neo4j(uri=URI, user=USER, password=PASSWORD)
-    result = execute_cypher(driver, DATA)
-
-    if result.success:
-        print(f"✅ Data loaded successfully!")
-        print(f"   Statements: {result.statements_executed}")
-        print(f"   Records: {result.records_affected}")
-        print(f"   Time: {result.execution_time:.2f}s")
-    else:
-        print(f"❌ Failed to load data:")
-        for error in result.errors:
-            print(f"   {error}")
-
-    close_connection(driver)
-
-if __name__ == "__main__":
-    main()
-EOF
-
-# Run it
-python load_data.py
-```
-
-**Expected output:**
-
-```
-📦 Loading sample data...
-✅ Data loaded successfully!
-   Statements: 12
-   Records: 22
-   Time: 0.34s
-```
-
----
-
-## 🔎 Step 9: Query Your Data
-
-In Neo4j Browser (http://localhost:7474):
-
-### View the entire graph
-
-```cypher
-MATCH (n)-[r]->(m)
-RETURN n, r, m
-LIMIT 50
-```
-
-### Find high-value customers
-
-```cypher
-MATCH (c:customer)-[p:PURCHASED]->()
-WITH c, sum(p.total_amount) AS total_spent
-WHERE total_spent > 1000
-RETURN c.name, c.email, total_spent
-ORDER BY total_spent DESC
-```
-
-### Popular products
-
-```cypher
-MATCH ()-[p:PURCHASED]->(prod:product)
-RETURN prod.name, prod.category, count(p) AS purchases, sum(p.quantity) AS units_sold
-ORDER BY purchases DESC
-```
-
-### Customer purchase history
-
-```cypher
-MATCH (c:customer {customer_id: 'C001'})-[p:PURCHASED]->(prod:product)
-RETURN c.name, prod.name, p.order_date, p.quantity, p.total_amount
-ORDER BY p.order_date
-```
-
----
-
-## 🎨 Step 10: Visualize Your Schema
-
-Generate an interactive visualization:
+Generate standalone visualizations:
 
 ```bash
 # D3.js force-directed graph
-grai visualize --format d3 --open
+grai visualize
 
-# Or Cytoscape.js network
-grai visualize --format cytoscape --open
+# Cytoscape.js network
+grai visualize --format cytoscape
+
+# Open in browser
+grai visualize --open
 ```
 
-This opens an interactive HTML file showing your entities and relations.
+## Lineage Analysis
 
----
-
-## 🔄 Common Workflows
-
-### Workflow 1: Make Schema Changes
+Analyze dependencies:
 
 ```bash
-# 1. Edit your YAML files
-vim entities/customer.yml
+# View statistics
+grai lineage
 
-# 2. Validate changes
-grai validate
+# Analyze specific entity
+grai lineage --entity customer
 
-# 3. Build to see generated Cypher
-grai build
+# Impact analysis
+grai lineage --impact customer
 
-# 4. Review the output
-cat target/neo4j/compiled.cypher
-
-# 5. Execute when satisfied
-grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
+# Generate Mermaid diagram
+grai lineage --visualize mermaid --output lineage.mmd
 ```
 
-### Workflow 2: Add New Entity
+## Schema Migrations
+
+Manage schema changes over time:
 
 ```bash
-# Create new entity file
-cat > entities/order.yml << 'EOF'
-entity: order
-source: analytics.orders
-keys: [order_id]
-properties:
-  - name: order_id
-    type: string
-  - name: status
-    type: string
-  - name: created_at
-    type: datetime
-  - name: total_amount
-    type: float
-EOF
+# Generate migration from changes
+grai migrate-generate --description "Add email to customer"
 
-# Validate and build
-grai validate
-grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
+# Check pending migrations
+grai migrate-status
+
+# Apply migrations
+grai migrate-apply --uri bolt://localhost:7687 --password secret
+
+# Rollback if needed
+grai migrate-rollback --uri bolt://localhost:7687 --password secret
 ```
 
-### Workflow 3: Generate Documentation
+See [Schema Migrations](MIGRATIONS.md) for details.
 
-```bash
-# Export schema as JSON
-grai export --format json --output schema.json
+## CI/CD Integration
 
-# Generate lineage diagram (Mermaid)
-grai lineage --format mermaid --output lineage.mmd
+Example GitHub Actions workflow:
 
-# Generate lineage diagram (Graphviz)
-grai lineage --format dot --output lineage.dot
+```yaml
+name: Deploy Schema
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install grai-build
+        run: pip install grai-build
+
+      - name: Validate
+        run: grai validate
+
+      - name: Deploy
+        run: |
+          grai run --schema-only \
+            --uri ${{ secrets.NEO4J_URI }} \
+            --user ${{ secrets.NEO4J_USER }} \
+            --password ${{ secrets.NEO4J_PASSWORD }}
 ```
 
-### Workflow 4: Work from Any Directory
+## Command Reference
 
-**Important:** You can run `grai` commands from anywhere as long as:
+| Command | Description |
+|---------|-------------|
+| `grai init` | Initialize new project |
+| `grai validate` | Validate schema |
+| `grai build` | Compile to Cypher |
+| `grai run` | Deploy to Neo4j |
+| `grai docs` | Generate documentation |
+| `grai visualize` | Generate graph visualization |
+| `grai lineage` | Analyze dependencies |
+| `grai export` | Export as JSON |
+| `grai cache` | Manage build cache |
+| `grai migrate-*` | Schema migrations |
+| `grai info` | Show project info |
 
-1. You're in a directory with a `grai.yml` file, OR
-2. You specify the project directory with `--project-dir`
+See [CLI Reference](CLI.md) for complete documentation.
 
-```bash
-# Option 1: Navigate to project directory
-cd ~/my-projects/ecommerce-graph
-grai validate
+## Next Steps
 
-# Option 2: Run from anywhere
-grai validate --project-dir ~/my-projects/ecommerce-graph
-grai build --project-dir ~/my-projects/ecommerce-graph
-
-# Option 3: Use environment variable
-export GRAI_PROJECT_DIR=~/my-projects/ecommerce-graph
-grai validate  # Works from any directory
-```
-
----
-
-## 📁 Directory Structure Best Practices
-
-### Recommended structure:
-
-```
-~/my-projects/
-├── ecommerce-graph/           # One project
-│   ├── grai.yml
-│   ├── entities/
-│   ├── relations/
-│   └── target/
-├── social-network-graph/      # Another project
-│   ├── grai.yml
-│   ├── entities/
-│   ├── relations/
-│   └── target/
-└── finance-graph/             # Another project
-    ├── grai.yml
-    ├── entities/
-    ├── relations/
-    └── target/
-```
-
-### Each project is independent:
-
-- Has its own `grai.yml` configuration
-- Can point to different Neo4j databases
-- Can have different validation rules
-- Generates its own compiled output
-
----
-
-## 🎯 Quick Reference
-
-### Essential Commands (run from project directory)
-
-```bash
-# Initialize new project
-grai init
-
-# Validate schema
-grai validate
-
-# Build (compile only)
-grai build
-
-# Build and execute
-grai run --uri bolt://localhost:7687 --user neo4j --password graipassword
-
-# Visualize
-grai visualize --format d3 --open
-
-# Export schema
-grai export --format json --output schema.json
-
-# Generate lineage
-grai lineage --format mermaid
-
-# Get help
-grai --help
-grai build --help
-```
-
-### Connection Details (default Docker setup)
-
-```bash
-URI:      bolt://localhost:7687
-User:     neo4j
-Password: graipassword
-Browser:  http://localhost:7474
-Database: neo4j
-```
-
----
-
-## ✅ Checklist for New Projects
-
-- [ ] Created project directory outside grai.build repo
-- [ ] Initialized project with `grai init` or manually
-- [ ] Created `grai.yml` with Neo4j connection details
-- [ ] Defined at least one entity in `entities/`
-- [ ] (Optional) Defined relations in `relations/`
-- [ ] Ran `grai validate` successfully
-- [ ] Ran `grai build` to see compiled Cypher
-- [ ] Neo4j is running and accessible
-- [ ] Ran `grai run` to load schema
-- [ ] Verified in Neo4j Browser
-- [ ] (Optional) Loaded sample data
-- [ ] (Optional) Generated visualization
-
----
-
-## 🆘 Troubleshooting
-
-### "No grai.yml found"
-
-Make sure you're in the right directory:
-
-```bash
-pwd
-ls -la grai.yml
-```
-
-Or specify the project directory:
-
-```bash
-grai validate --project-dir /path/to/project
-```
-
-### "Cannot connect to Neo4j"
-
-Check Neo4j is running:
-
-```bash
-# Docker
-docker ps | grep neo4j
-
-# Test connection
-curl http://localhost:7474
-```
-
-### "Command 'grai' not found"
-
-Install grai-build:
-
-```bash
-pip install -e /path/to/grai.build/repo
-# Or when published: pip install grai-build
-```
-
-### "Module not found" errors
-
-Make sure all dependencies are installed:
-
-```bash
-pip install pydantic pyyaml typer rich neo4j
-```
-
----
-
-## 🚀 Next Steps
-
-1. **Create your own entities** - Define your domain model
-2. **Load real data** - Connect to your data sources
-3. **Build queries** - Leverage the graph structure
-4. **Integrate with CI/CD** - Automate schema deployment
-5. **Share with team** - Version control your YAML files
-
----
-
-## 📚 Additional Resources
-
-- [NEO4J_SETUP.md](NEO4J_SETUP.md) - Detailed Neo4j installation guide
-- [PARSER.md](PARSER.md) - YAML schema reference
-- [VALIDATOR.md](VALIDATOR.md) - Validation rules
-- [COMPILER.md](COMPILER.md) - Cypher generation details
-- [VISUALIZER.md](VISUALIZER.md) - Visualization options
-
----
-
-**🎉 Happy graph modeling with grai.build!**
+- [CLI Reference](CLI.md) - Full command documentation
+- [Schema Migrations](MIGRATIONS.md) - Version control for schemas
+- [Lineage Tracking](LINEAGE.md) - Dependency analysis
+- [Philosophy](PHILOSOPHY.md) - Design principles

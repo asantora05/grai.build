@@ -1,10 +1,10 @@
-# 📊 Data Loading Guide
+# Data Loading Guide
 
 Complete guide to understanding data loading in grai.build.
 
 ---
 
-## 🎯 Overview
+## Overview
 
 **Important Philosophy:** grai.build is a **schema management tool**, not a **data loading tool**.
 
@@ -32,15 +32,15 @@ Think of it like database migrations:
 
 The `--load-csv` feature exists **only** for:
 
-- ✅ Quick local testing
-- ✅ Demos and tutorials
-- ✅ Validating schema with sample data
+- Quick local testing
+- Demos and tutorials
+- Validating schema with sample data
 
 **In production**, you need proper ETL pipelines. See strategies below.
 
 ---
 
-## 🏗️ Schema-Only Mode (Default)
+## Schema-Only Mode (Default)
 
 ### What it does
 
@@ -84,7 +84,7 @@ FOR (n:customer) ON (n.email);
 
 ---
 
-## 📦 With Data Mode
+## With Data Mode
 
 ### What it does
 
@@ -103,7 +103,7 @@ Generates MERGE statements with `row.property` placeholders designed for use wit
 grai run --with-data --uri bolt://localhost:7687 --user neo4j --password secret
 ```
 
-### ⚠️ Important Note
+### Important Note
 
 The `--with-data` flag generates Cypher like this:
 
@@ -121,7 +121,7 @@ This **will fail** if executed directly because `row` is undefined. You need to 
 
 ---
 
-## 🎁 Quick Start with Sample Data
+## Quick Start with Sample Data
 
 When you run `grai init`, sample CSV files and a loading script are automatically created:
 
@@ -176,7 +176,7 @@ That's it! Your graph is now populated with sample data.
 
 ---
 
-## 🔄 Data Loading Strategies
+## Data Loading Strategies
 
 ### Strategy 1: Python Scripts (Recommended)
 
@@ -269,7 +269,7 @@ driver.close()
 
 ---
 
-## 🚀 Recommended Workflow
+## Recommended Workflow
 
 ### 1. Create Schema
 
@@ -309,7 +309,7 @@ LIMIT 5;
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Error: "Variable `row` not defined"
 
@@ -342,7 +342,7 @@ grai run --with-data
 
 ---
 
-## 📚 Examples
+## Examples
 
 ### Complete Example: Schema + Data
 
@@ -382,7 +382,7 @@ python load_data.py
 
 ---
 
-## 🎯 Best Practices
+## Best Practices
 
 1. **Always create schema first** before loading data
 2. **Use schema-only mode by default** (it's the default for a reason)
@@ -394,7 +394,7 @@ python load_data.py
 
 ---
 
-## 📖 Related Documentation
+## Related Documentation
 
 - [Getting Started Guide](GETTING_STARTED.md) - Complete beginner tutorial
 - [Neo4j Setup Guide](NEO4J_SETUP.md) - Local Neo4j installation

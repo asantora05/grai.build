@@ -6,7 +6,7 @@ The validator module (`grai/core/validator/`) provides comprehensive validation 
 
 ## Features
 
-### ✅ Validation Functions
+### Validation Functions
 
 1. **Project-Level Validation**
 
@@ -28,7 +28,7 @@ The validator module (`grai/core/validator/`) provides comprehensive validation 
    - `validate_property_definitions()` - Check property consistency
    - `check_circular_dependencies()` - Detect circular relations
 
-### ✅ Error Handling
+### Error Handling
 
 - `ValidationError` - Base exception for validation errors
 - `EntityReferenceError` - Invalid entity reference

@@ -1,16 +1,26 @@
-# CLI - Command-Line Interface
+# CLI Reference
 
 The grai.build CLI provides a Typer-based command-line interface for working with knowledge graph projects.
 
 ## Overview
 
-The CLI exposes five main commands:
-
-- `grai init` - Initialize a new project
-- `grai validate` - Validate entity and relation definitions
-- `grai build` - Build project by compiling to Cypher
-- `grai compile` - Compile without validation
-- `grai info` - Show project information and statistics
+| Command | Description |
+|---------|-------------|
+| `grai init` | Initialize a new project |
+| `grai validate` | Validate entity and relation definitions |
+| `grai build` | Build project by compiling to Cypher |
+| `grai compile` | Compile without validation |
+| `grai run` | Execute Cypher against Neo4j |
+| `grai docs` | Generate documentation |
+| `grai visualize` | Generate interactive graph visualization |
+| `grai lineage` | Analyze dependencies and impact |
+| `grai export` | Export schema as JSON |
+| `grai cache` | Manage build cache |
+| `grai info` | Show project information |
+| `grai migrate-generate` | Generate migration from schema changes |
+| `grai migrate-status` | Show migration status |
+| `grai migrate-apply` | Apply pending migrations |
+| `grai migrate-rollback` | Rollback last migration |
 
 ## Installation
 
@@ -21,7 +31,7 @@ pip install grai-build
 Or install from source:
 
 ```bash
-git clone https://github.com/grai-build/grai.build
+git clone https://github.com/asantora05/grai.build
 cd grai.build
 pip install -e .
 ```
@@ -117,12 +127,12 @@ grai validate --verbose
 
 **Validation Checks:**
 
-- ✅ Entity references exist
-- ✅ Key mappings are valid
-- ✅ No duplicate property names
-- ✅ No duplicate entity/relation names
-- ✅ No circular dependencies
-- ✅ Required fields are present
+- Entity references exist
+- Key mappings are valid
+- No duplicate property names
+- No duplicate entity/relation names
+- No circular dependencies
+- Required fields are present
 
 **Output:**
 
@@ -403,14 +413,7 @@ Hint: Run 'grai init' to create a new project
 
 ## Rich Output
 
-The CLI uses Rich for beautiful, colored terminal output:
-
-- ✓ Green checkmarks for success
-- ✗ Red X marks for errors
-- ⚠ Yellow warnings
-- → Cyan arrows for progress
-- 📊 Tables for structured data
-- 🚀 Emoji for visual context
+The CLI uses Rich for colored terminal output with checkmarks for success, X marks for errors, warnings, and tables for structured data.
 
 ## Environment Variables
 
@@ -446,7 +449,7 @@ else:
 - [Parser Documentation](PARSER.md) - YAML parsing details
 - [Validator Documentation](VALIDATOR.md) - Validation rules
 - [Compiler Documentation](COMPILER.md) - Cypher generation
-- [Project Progress](PROGRESS.md) - Development status
+- [Schema Migrations](MIGRATIONS.md) - Migration system
 
 ## Contributing
 
@@ -510,8 +513,3 @@ sudo grai build
 # Or change output directory
 grai build --output ~/my-graphs
 ```
-
----
-
-**Version**: 0.1.0
-**Last Updated**: January 2025

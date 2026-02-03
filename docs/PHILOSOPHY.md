@@ -1,4 +1,4 @@
-# 🎯 Philosophy & Design Principles
+# Philosophy & Design Principles
 
 ## What is grai.build?
 
@@ -8,7 +8,7 @@ Like dbt transformed SQL analytics with declarative modeling, grai.build brings 
 
 ---
 
-## 🤔 The Problem We Solve
+## The Problem We Solve
 
 ### Traditional Graph Development Problems
 
@@ -29,7 +29,7 @@ We are **not** an ETL tool. We don't:
 
 ---
 
-## 🎯 Core Philosophy
+## Core Philosophy
 
 ### 1. **Schema, Not Data**
 
@@ -112,7 +112,7 @@ Schema changes go through code review and CI, just like application code.
 
 ---
 
-## 🏗️ Architecture Principles
+## Architecture Principles
 
 ### Inspired by Modern Data Tools
 
@@ -166,7 +166,7 @@ properties:
 
 ---
 
-## 📊 Comparison to Other Tools
+## Comparison to Other Tools
 
 ### vs. Neo4j Desktop / Browser
 
@@ -191,9 +191,9 @@ properties:
 
 ---
 
-## 🎯 When to Use grai.build
+## When to Use grai.build
 
-### ✅ Perfect Use Cases
+### Perfect Use Cases
 
 1. **Microservices with Shared Graph**
 
@@ -225,7 +225,7 @@ properties:
    → Catch schema errors before production
    ```
 
-### ❌ Not Ideal Use Cases
+### Not Ideal Use Cases
 
 1. **Simple Application CRUD**
 
@@ -249,7 +249,7 @@ properties:
 
 ---
 
-## 🔄 Recommended Workflows
+## Recommended Workflows
 
 ### Development Workflow
 
@@ -311,39 +311,34 @@ Developer A              Developer B
 
 ---
 
-## 🚀 Future Vision
+## Roadmap
 
-### Phase 1: Schema Management (Current)
+### Completed
 
-- ✅ Define entities/relations in YAML
-- ✅ Generate Cypher constraints/indexes
-- ✅ Validate schema consistency
-- ✅ Basic visualization
+- Define entities/relations in YAML
+- Generate Cypher constraints/indexes
+- Validate schema consistency
+- Visualization (D3.js, Cytoscape.js)
+- Lineage tracking and impact analysis
+- Schema migrations (like Alembic)
+- Build caching
 
-### Phase 2: Integration Templates (Next)
+### In Progress
 
-- 🔄 Generate ETL boilerplate code
-- 🔄 dbt integration (graph models)
-- 🔄 Airflow operators for graph loading
-- 🔄 FastAPI endpoints for graph CRUD
+- dbt integration (graph models)
+- Airflow operators for graph loading
 
-### Phase 3: Multi-Backend (Future)
+### Future
 
-- ⏳ Apache AGE support
-- ⏳ TigerGraph support
-- ⏳ Gremlin-compatible databases
-- ⏳ Cross-platform schema abstraction
-
-### Phase 4: Advanced Features (Future)
-
-- ⏳ Schema migrations (like Alembic)
-- ⏳ Breaking change detection
-- ⏳ Auto-generated GraphQL APIs
-- ⏳ Graph testing framework
+- Apache AGE support
+- TigerGraph support
+- Gremlin-compatible databases
+- Breaking change detection
+- Auto-generated GraphQL APIs
 
 ---
 
-## 💡 Key Insights
+## Key Insights
 
 ### 1. **CSV Loading is for Development Only**
 
@@ -392,7 +387,7 @@ Documentation stays in sync with code automatically.
 
 ---
 
-## 🎓 Learning from dbt's Success
+## Learning from dbt's Success
 
 ### What dbt Got Right
 
@@ -412,7 +407,7 @@ Documentation stays in sync with code automatically.
 
 ---
 
-## 🎯 Success Metrics
+## Success Metrics
 
 We know we're successful when:
 
@@ -438,7 +433,7 @@ We know we're successful when:
 
 ---
 
-## 📚 Further Reading
+## Further Reading
 
 - [Getting Started](GETTING_STARTED.md) - Quick start guide
 - [CLI Usage](CLI_USAGE.md) - Complete command reference
@@ -447,7 +442,7 @@ We know we're successful when:
 
 ---
 
-## 💬 Questions?
+## Questions?
 
 **"Should I use grai.build if I'm just building a simple app?"**
 

@@ -769,29 +769,6 @@ pytest tests/test_lineage.py -v
 pytest tests/test_lineage.py --cov=grai.core.lineage
 ```
 
-**Test Coverage:**
-
-- Graph construction: 4 tests
-- Entity lineage: 3 tests
-- Relation lineage: 3 tests
-- Upstream/downstream: 5 tests
-- Path finding: 3 tests
-- Impact analysis: 4 tests
-- Statistics: 2 tests
-- Export: 3 tests
-- Visualization: 6 tests
-- Integration: 1 test
-
-**Total:** 44 tests, 95% coverage
-
-## Examples
-
-See `demo_lineage.py` for a comprehensive demonstration of all features:
-
-```bash
-python demo_lineage.py
-```
-
 ## Future Enhancements
 
 Planned features for future versions:
@@ -824,12 +801,9 @@ Planned features for future versions:
 
 The lineage tracking module provides:
 
-✅ Complete dependency analysis
-✅ Impact assessment
-✅ Path finding
-✅ Multiple visualization formats
-✅ JSON export for integration
-✅ CLI and Python API
-✅ Comprehensive testing (95% coverage)
-
-Perfect for understanding and documenting complex knowledge graph relationships!
+- Complete dependency analysis
+- Impact assessment
+- Path finding
+- Multiple visualization formats (Mermaid, Graphviz)
+- JSON export for integration
+- CLI and Python API

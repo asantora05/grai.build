@@ -6,7 +6,7 @@ The YAML parser module (`grai/core/parser/`) provides comprehensive functionalit
 
 ## Features
 
-### ✅ Core Functionality
+### Core Functionality
 
 1. **Individual File Parsing**
 
@@ -28,7 +28,7 @@ The YAML parser module (`grai/core/parser/`) provides comprehensive functionalit
    - `YAMLParseError` - YAML syntax or file errors
    - `ValidationParserError` - Pydantic validation errors
 
-### ✅ Key Features
+### Key Features
 
 - **Automatic File Discovery**: Recursively finds `.yml` and `.yaml` files
 - **Robust Validation**: Uses Pydantic for type-safe validation

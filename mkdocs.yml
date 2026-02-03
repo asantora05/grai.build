@@ -138,7 +138,6 @@ nav:
       - Enhanced Sources: ENHANCED_SOURCES.md
       - Data Loading: DATA_LOADING.md
   - Development:
-      - Progress: PROGRESS.md
       - CI/CD: CI_CD.md
 
 extra_css:

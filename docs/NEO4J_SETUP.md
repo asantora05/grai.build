@@ -1,10 +1,10 @@
-# 🚀 Neo4j Local Setup Guide
+# Neo4j Setup Guide
 
 Complete guide to using grai.build with a local Neo4j instance.
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Python 3.11+ installed
 - Docker Desktop (recommended) OR Neo4j Desktop
@@ -13,7 +13,7 @@ Complete guide to using grai.build with a local Neo4j instance.
 
 ---
 
-## 🐳 Option 1: Neo4j with Docker (Recommended)
+## Option 1: Neo4j with Docker (Recommended)
 
 ### Step 1: Install Docker Desktop
 
@@ -103,7 +103,7 @@ rm -rf ~/neo4j
 
 ---
 
-## 🖥️ Option 2: Neo4j Desktop
+## Option 2: Neo4j Desktop
 
 ### Step 1: Download Neo4j Desktop
 
@@ -131,7 +131,7 @@ Click the "Start" button on your database.
 
 ---
 
-## 🔧 Configure grai.build
+## Configure grai.build
 
 ### Step 1: Install Neo4j Python Driver
 
@@ -286,7 +286,7 @@ Connecting to bolt://localhost:7687...
 
 ---
 
-## 📝 Use grai.build with Neo4j
+## Use grai.build with Neo4j
 
 ### Step 1: Navigate to Your Project
 
@@ -444,7 +444,7 @@ ORDER BY purchase_count DESC
 
 ---
 
-## 🎨 Visualize Your Graph
+## Visualize Your Graph
 
 Use grai's built-in visualization:
 
@@ -460,7 +460,7 @@ This will open an interactive HTML visualization in your browser showing your gr
 
 ---
 
-## 🔄 Common Workflows
+## Common Workflows
 
 ### Workflow 1: Iterative Development
 
@@ -534,7 +534,7 @@ EOF
 
 ---
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Issue: "Cannot connect to Neo4j"
 
@@ -606,7 +606,7 @@ chmod -R 755 ~/neo4j
 
 ---
 
-## 📚 Next Steps
+## Next Steps
 
 1. **Explore the CLI:**
 
@@ -637,7 +637,7 @@ chmod -R 755 ~/neo4j
 
 ---
 
-## 🎯 Quick Reference
+## Quick Reference
 
 ### Essential Commands
 
@@ -689,19 +689,13 @@ docker rm neo4j-grai
 
 ---
 
-## ✅ Success Checklist
+## Success Checklist
 
-- [ ] Neo4j running (Docker or Desktop)
-- [ ] Can access http://localhost:7474
-- [ ] Can login with credentials
-- [ ] Python neo4j driver installed (`pip install neo4j`)
-- [ ] `test_connection.py` runs successfully
-- [ ] `grai validate` passes
-- [ ] `grai build` generates Cypher
-- [ ] `grai run` loads schema
-- [ ] Can query data in Neo4j Browser
-- [ ] `grai visualize --open` shows graph
-
----
-
-**🎉 You're ready to build knowledge graphs with grai.build and Neo4j!**
+- Neo4j running (Docker or Desktop)
+- Can access http://localhost:7474
+- Can login with credentials
+- Python neo4j driver installed (`pip install neo4j`)
+- `grai validate` passes
+- `grai build` generates Cypher
+- `grai run` loads schema
+- Can query data in Neo4j Browser

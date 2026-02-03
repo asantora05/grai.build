@@ -2,16 +2,16 @@
 
 This document describes the CI/CD infrastructure for grai.build.
 
-## 📋 Overview
+## Overview
 
 grai.build uses GitHub Actions for continuous integration and deployment. Our pipeline includes:
 
-- ✅ **Continuous Integration** - Automated testing and validation
-- 🔒 **Security Scanning** - Dependency and code security checks
-- 📦 **Release Automation** - Automated PyPI publishing
-- 📚 **Documentation Building** - Example docs generation
+- **Continuous Integration** - Automated testing and validation
+- **Security Scanning** - Dependency and code security checks
+- **Release Automation** - Automated PyPI publishing
+- **Documentation Building** - Example docs generation
 
-## 🔄 Workflows
+## Workflows
 
 ### 1. CI Workflow (`.github/workflows/ci.yml`)
 
@@ -153,7 +153,7 @@ git push origin v0.3.0
 
 _Note: GitHub Pages deployment is commented out - can be enabled when needed._
 
-## 🔐 Required Secrets
+## Required Secrets
 
 To enable full CI/CD, configure these secrets in GitHub Settings → Secrets and variables → Actions:
 
@@ -180,7 +180,7 @@ To enable full CI/CD, configure these secrets in GitHub Settings → Secrets and
    - Copy upload token
    - Add to GitHub secrets
 
-## 📊 Status Badges
+## Status Badges
 
 Add these to your README:
 
@@ -193,7 +193,7 @@ Add these to your README:
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 ```
 
-## 🤖 Dependabot
+## Dependabot
 
 Dependabot is configured in `.github/dependabot.yml` to automatically:
 
@@ -209,7 +209,7 @@ Dependabot is configured in `.github/dependabot.yml` to automatically:
 3. Test locally if breaking changes
 4. Merge when safe
 
-## 🚀 Deployment Process
+## Deployment Process
 
 ### Releasing a New Version
 
@@ -290,7 +290,7 @@ git tag -a v0.3.1 -m "Hotfix v0.3.1"
 git push origin main --tags
 ```
 
-## 🧪 Testing CI Locally
+## Testing CI Locally
 
 ### Using Act
 
@@ -332,7 +332,7 @@ pip install dist/*.whl
 grai --version
 ```
 
-## 📈 Monitoring
+## Monitoring
 
 ### Check Workflow Status
 
@@ -353,7 +353,7 @@ gh run download [run-id]
 gh run view [run-id] --log
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### CI Failures
 
@@ -396,7 +396,7 @@ git tag -a v0.3.0 -m "Release v0.3.0"
 git push origin v0.3.0
 ```
 
-## 📝 Best Practices
+## Best Practices
 
 1. **Always run tests locally before pushing**
 2. **Keep workflows DRY** - Use reusable workflows when possible
@@ -406,7 +406,7 @@ git push origin v0.3.0
 6. **Review Dependabot PRs** - Don't blindly merge
 7. **Tag semantically** - Follow semantic versioning
 
-## 🔮 Future Improvements
+## Future Improvements
 
 - [ ] Add performance benchmarking
 - [ ] Set up GitHub Pages for docs
@@ -418,7 +418,7 @@ git push origin v0.3.0
 - [ ] Add nightly builds
 - [ ] Add canary releases
 
-## 📚 Resources
+## Resources
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [PyPI Publishing Guide](https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/)

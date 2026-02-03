@@ -505,32 +505,6 @@ pytest tests/test_visualizer.py -v
 pytest tests/test_visualizer.py --cov=grai.core.visualizer
 ```
 
-**Test Coverage:**
-
-- HTML generation
-- File creation
-- Custom parameters
-- Both formats
-- Integration tests
-
-**Total:** 16 tests, 100% coverage
-
-## Examples
-
-See `demo_visualizer.py` for a comprehensive demonstration:
-
-```bash
-python demo_visualizer.py
-```
-
-**Demonstration includes:**
-
-- D3.js visualization generation
-- Cytoscape.js visualization generation
-- Custom dimensions
-- File size comparison
-- Feature overview
-
 ## Future Enhancements
 
 Planned features for future versions:
@@ -548,13 +522,9 @@ Planned features for future versions:
 
 The visualization module provides:
 
-✅ Interactive HTML visualizations
-✅ Two professional formats (D3.js, Cytoscape.js)
-✅ No server required
-✅ Browser-based interaction
-✅ Customizable dimensions and titles
-✅ Comprehensive testing (16 tests)
-✅ CLI integration (`grai visualize`)
-✅ Perfect for documentation and analysis
-
-Create beautiful, interactive visualizations with a single command!
+- Interactive HTML visualizations
+- Two professional formats (D3.js, Cytoscape.js)
+- No server required
+- Browser-based interaction
+- Customizable dimensions and titles
+- CLI integration (`grai visualize`)
