@@ -142,9 +142,11 @@ def test_migration_apply_and_rollback(neo4j_driver, neo4j_env, tmp_path):
     executor = MigrationExecutor(neo4j_driver, tmp_path)
 
     try:
-        results = executor.apply_all_pending()
-        assert len(results) == 1
-        assert results[0].version == version
+        migration = executor._load_migration(version)
+        assert migration is not None
+
+        history = executor.apply_migration(migration)
+        assert history.version == version
 
         with neo4j_driver.session(database=database) as session:
             record = session.run(
