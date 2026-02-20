@@ -71,6 +71,10 @@ python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --cov=grai --cov-report=term-missing"
 
+markers = [
+    "neo4j_integration: requires a live Neo4j instance; skipped unless run with -m neo4j_integration",
+]
+
 [tool.setuptools_scm]
 version_scheme = "guess-next-dev"
 local_scheme = "no-local-version"
