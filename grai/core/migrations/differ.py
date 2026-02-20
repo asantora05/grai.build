@@ -70,6 +70,7 @@ class SchemaDiffer:
                         name=name,
                         change_type=ChangeType.ADDED,
                         properties_added=[p.model_dump(mode="json") for p in entity.properties],
+                        old_keys=None,
                         new_keys=entity.keys,
                     )
                 )
@@ -84,6 +85,7 @@ class SchemaDiffer:
                         change_type=ChangeType.REMOVED,
                         properties_removed=[p.name for p in old_entity.properties],
                         old_keys=old_entity.keys,
+                        new_keys=None,
                     )
                 )
 
@@ -165,7 +167,9 @@ class SchemaDiffer:
                     RelationChange(
                         name=name,
                         change_type=ChangeType.ADDED,
+                        old_from=None,
                         new_from=relation.from_entity,
+                        old_to=None,
                         new_to=relation.to_entity,
                         properties_added=[p.model_dump(mode="json") for p in relation.properties],
                     )
@@ -180,7 +184,9 @@ class SchemaDiffer:
                         name=name,
                         change_type=ChangeType.REMOVED,
                         old_from=old_relation.from_entity,
+                        new_from=None,
                         old_to=old_relation.to_entity,
+                        new_to=None,
                         properties_removed=[p.name for p in old_relation.properties],
                     )
                 )

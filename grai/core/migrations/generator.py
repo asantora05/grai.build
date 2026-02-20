@@ -82,6 +82,7 @@ class MigrationGenerator:
             changes=changes,
             up_cypher=up_cypher,
             down_cypher=down_cypher,
+            checksum=None,
         )
 
         # Calculate checksum

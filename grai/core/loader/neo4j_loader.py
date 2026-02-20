@@ -410,6 +410,7 @@ def execute_cypher_with_retry(
             time.sleep(retry_delay)
 
     # All retries exhausted
+    assert last_result is not None
     return last_result
 
 
