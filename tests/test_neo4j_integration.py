@@ -115,11 +115,11 @@ def test_execute_cypher_file_creates_graph(neo4j_driver, neo4j_env, tmp_path):
 def test_migration_apply_and_rollback(neo4j_driver, neo4j_env, tmp_path):
     _, _, _, database = neo4j_env
     run_id = uuid.uuid4().hex
-    version = f"20990101_{run_id[:6]}"
+    version = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     migrations_dir = tmp_path / "migrations"
     migrations_dir.mkdir()
 
-    migration_file = migrations_dir / f"{version}_neo4j_test.yml"
+    migration_file = migrations_dir / f"{version}_neo4j_test_{run_id[:6]}.yml"
     migration_file.write_text(
         textwrap.dedent(
             f"""
