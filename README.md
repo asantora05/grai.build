@@ -57,6 +57,7 @@ my-graph-project/
 ## Schema Definition
 
 **Entity** (`entities/customer.yml`):
+
 ```yaml
 entity: customer
 source: analytics.customers
@@ -71,6 +72,7 @@ properties:
 ```
 
 **Relation** (`relations/purchased.yml`):
+
 ```yaml
 relation: PURCHASED
 from: customer
@@ -87,6 +89,7 @@ properties:
 ```
 
 **Compiled output** (`target/neo4j/compiled.cypher`):
+
 ```cypher
 MERGE (n:customer {customer_id: row.customer_id})
 SET n.name = row.name, n.region = row.region;
@@ -99,14 +102,14 @@ SET r.order_id = row.order_id, r.order_date = row.order_date;
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| Schema validation | Catch reference errors and type mismatches before deployment |
-| Cypher compilation | Generate constraints, indexes, and merge statements |
-| Documentation | Interactive HTML docs with entity catalog and graph visualization |
-| Lineage tracking | Dependency graphs and impact analysis |
-| Migrations | Version-controlled schema changes with up/down scripts |
-| Build caching | Incremental builds for faster iteration |
+| Feature            | Description                                                       |
+| ------------------ | ----------------------------------------------------------------- |
+| Schema validation  | Catch reference errors and type mismatches before deployment      |
+| Cypher compilation | Generate constraints, indexes, and merge statements               |
+| Documentation      | Interactive HTML docs with entity catalog and graph visualization |
+| Lineage tracking   | Dependency graphs and impact analysis                             |
+| Migrations         | Version-controlled schema changes with up/down scripts            |
+| Build caching      | Incremental builds for faster iteration                           |
 
 ## CLI Commands
 
@@ -164,8 +167,6 @@ pytest
 - [x] Documentation generation
 - [x] Lineage tracking and visualization
 - [x] Schema migrations
-- [ ] Gremlin backend support
-- [ ] Incremental sync
 
 ## Contributing
 
